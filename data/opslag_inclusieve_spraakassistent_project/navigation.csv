@@ -1,0 +1,26 @@
+﻿Input;Action
+Volgende;next step
+Klaar;next step
+Gedaan;next step
+Vorige ;previous step
+Vorige stap;previous step
+één stap terug;previous step
+Wat zegt u?;current step
+Wat zeg je?;current step
+Kun je dat herhalen?;current step
+Wat zeggen jij?;current step
+Kun je dat opnieuw zeggen?;current step
+Ik snap het niet.;clarify
+Ik niet snappen;clarify
+Wat bedoel je?;clarify
+Wat?;clarify
+Wat moet ik doen?;clarify
+Ik weet het niet;clarify
+Ja;Confirm
+Zeker ;Confirm
+Graag;Confirm
+Yes;Confirm
+Jawel;Confirm
+Nee;Confirm
+Nope;Confirm
+No;Confirm

@@ -1,0 +1,35 @@
+﻿"Vraag;Antwoord;Context";
+"Wat is 'vorige'?;Vorige stap' betekent de stap voor deze stap.;b";
+"Vorige?;Vorige stap' betekent de stap voor deze stap.;b";
+"Wat is 'volgende'?;Volgende stap' betekent de stap na deze stap.;b";
+"Wat is 'herhaal'?;'Herhaal' betekent dat ik de stap opnieuw uitleg;b";
+"Waar is het veld 'Van'?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
+"Waar is 'Van'?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
+"Waar moet ik klikken?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
+"Waar moet ik heen?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
+"Waar is knop?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
+"Utrecht Centraal;Oké";" vul dat in bij ‘Van’.;1"
+"Waar is het veld 'Naar'?;Het veld 'Naar' staat onder 'Van' in het midden van het scherm. ;2";
+"Waar is naar?;Het veld 'Naar' staat onder 'Van' in het midden van het scherm. ;2";
+"Waar moet ik heen?;Het veld 'Naar' staat onder 'Van' in het midden van het scherm. ;2";
+"Waar moet ik klikken?;Het veld 'Naar' staat onder 'Van' in het midden van het scherm. ;2";
+"Waar is knop?;Het veld 'Naar' staat onder 'Van' in het midden van het scherm. ;2";
+"Amsterdam Centraal;Oké";" vul dat in bij ‘Naar’. ;2"
+"Waar is 'vertrek'?;De knop 'vertrek' staat rechts van de knop 'nu';4";
+"Waar moet ik klikken?;De knop 'vertrek' staat rechts van de knop 'nu';4";
+"Waar moet ik heen?;De knop 'vertrek' staat rechts van de knop 'nu';4";
+"Waar is knop?;De knop 'vertrek' staat rechts van de knop 'nu';4";
+"Wat betekent 'vertrek'?; 'Vertrek' betekent dat je op reis gaat;4";
+"Wat is 'vertrek'?; 'Vertrek' betekent dat je op reis gaat;4";
+"Waar staat 'datum'?;De knop 'datum' staat onder 'nu';5";
+"Waar moet ik klikken?;De knop 'datum' staat onder 'nu';5";
+"Waar moet ik heen?;De knop 'datum' staat onder 'nu';5";
+"Waar is knop?;De knop 'datum' staat onder 'nu';5";
+"Waar staat 'tijd'?;De knop 'tijd' staat rechts naast de knop 'datum';6";
+"Waar is knop?;De knop 'tijd' staat rechts naast de knop 'datum';6";
+"Waar moet ik klikken?;De knop 'tijd' staat rechts naast de knop 'datum';6";
+"Waar is knop?;De blauwe knop 'plan je reis' staat onder 'opties';7";
+"Waar is de knop 'Plan je reis'?;De blauwe knop 'plan je reis' staat onder 'opties';7";
+"Ik weet het niet.;Geen probleem. Je ziet een reis op je scherm. Wil je deze kiezen? Zeg 'ja' als je deze wil kiezen. Zeg 'nee' als je andere reizen wilt zien.”;e";
+"Ik snap het niet;Geen probleem. Je ziet een reis op je scherm. Wil je deze kiezen? Zeg 'ja' als je deze wil kiezen. Zeg 'nee' als je andere reizen wilt zien.”;e";
+"Wat moet ik doen?;Geen probleem. Je ziet een reis op je scherm. Wil je deze kiezen? Zeg 'ja' als je deze wil kiezen. Zeg 'nee' als je andere reizen wilt zien.”;e";
