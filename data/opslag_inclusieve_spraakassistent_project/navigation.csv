@@ -1,12 +1,22 @@
 ﻿Input;Action
+Reis;travel
+OV;travel
+Openbaar vervoer;travel
+Ik zou graag de reis instructies willen;travel
+Paspoort;passport
+Gemeente;passport
+Idee;passport
+Ik zou graag instructies voor het paspoort hebben;passport
 Volgende;next step
 Klaar;next step
 Gedaan;next step
+Next;next step
 Vorige ;previous step
 Vorige stap;previous step
 één stap terug;previous step
 Wat zegt u?;current step
 Wat zeg je?;current step
+Herhaal;current step
 Kun je dat herhalen?;current step
 Wat zeggen jij?;current step
 Kun je dat opnieuw zeggen?;current step
@@ -21,6 +31,6 @@ Zeker ;Confirm
 Graag;Confirm
 Yes;Confirm
 Jawel;Confirm
-Nee;Confirm
-Nope;Confirm
-No;Confirm
+Nee;Reject
+Nope;Reject
+No;Reject

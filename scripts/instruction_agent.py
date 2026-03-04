@@ -17,8 +17,10 @@ class InstructAgent:
     def __init__(self,llm):
         self.llm = llm
         self.instruction_index = 0
-        self.instructions = None
-        self.instruction_index = 0
+        self.context = None
+        self.domain = None
+        self.instructions = {}
+        self.active_instructions = []
         self.patterns = None
         self.pattern = 'b'
         self.rag = None
@@ -31,15 +33,13 @@ class InstructAgent:
 
     def chat(self):
         self.clean_buffer()
-        print("Start interacting with the conversational agent. Type 'quit' or 'exit' to end the conversation.")
-
+        self.context = 'b'
+        print(self.patterns[0])
         while True:
             user_input = input("You: ")
-
             if user_input.lower() in ['quit', 'exit']:
                 print("Agent: Tot ziens!")
                 break
-
             response = self.chat_with_agent(user_input)
             print(f"Agent: {response}")
             
@@ -67,76 +67,79 @@ class InstructAgent:
         response_content = "" 
         retrieved_context = ""
         instruction = ""
-        
-        # Beginning of conversation pattern
-        if not chat_history_messages:
-            response_content = self.patterns[0]
-            self.context = 'b'
-            #say_instruction = True
-        #first_instruction = get_instruction(current_instruction_index, instructions)
-         #De eerste stap is: {first_instruction}"
-    
-            # Update memory for this initial exchange
-          #  memory.save_context(
-           #     {"input": user_input},
-            #    {"output": response_content}
-            #)
-            #return response_content
-        # --- END NEW LOGIC ---
-        # End of conversation pattern
-        elif self.instruction_index >= len(self.instructions) and self.context != e:
-            response_content = self.patterns[1]
-            self.context = 'e'
-        # Handle explicit navigation commands first
-        else:
-            
-            retrieved = self.rag.query(query_texts=[processed_input],n_results=3)
-            print(retrieved)
-            retrieved_context = retrieved['documents'][0]
-            # retrieved_nav = self.rag['nav'].similarity_search_with_score(user_input, k = 1)
-            # retrieved_qa = self.rag['qa'].similarity_search_with_score(user_input, k = 3)
-            # print(retrieved_nav)
-            # print(retrieved_qa)
-            # quit()
-        # if "volgende stap" in processed_input or "volgende" in processed_input:
-            
-            #self.instruction_index += 1
-        #     say_instruction = True
-        #     # Ensure index stays within bounds for direct instruction retrieval
-        #     #current_instruction_index = min(current_instruction_index, len(instructions) - 1)
-        #     #response_content = get_instruction(current_instruction_index, instructions)
-        # elif "vorige stap" in processed_input or "vorige" in processed_input:
-        #     self.instruction_index -= 1
-        #     say_instruction = True
-        #     # Ensure index stays within bounds for direct instruction retrieval
-        #     #current_instruction_index = max(0, current_instruction_index)
-        #     #ç
-        # elif "herhaal" in processed_input:
-        #     say_instruction = True
+        prompt = False
+        # # Beginning of conversation pattern
+        # if not chat_history_messages:
+        #     response_content = self.patterns[0]
+        #     self.context = 'b'
+        # instruction conversation
         # else:
-        #     # For general questions, first retrieve relevant documents from qa_vector_db
-        #     retrieved_nav = self.rag['nav'].similarity_search(user_input, k = '1')
-        #     retrieved_qa = self.rag['qa'].similarity_search(user_input, k = '3')
-        #     retrieved_docs = self.rag.similarity_search(user_input, k=3)
-        #     retrieved_context = "\n\n".join([doc.page_content for doc in retrieved_docs])
+        # Handle explicit navigation commands first
+        if self.context == 'b':
+            retrieved = self.rag.query(query_texts=[processed_input],n_results=3,where={'$and': [{'type': 'nav'}, {'step_context': {'$in': ['all',self.context]}}]})
+        else:
+            retrieved = self.rag.query(query_texts=[processed_input],n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context]}}]})
+        match,cat,do = self.parse_retrieved(retrieved)
+        if cat == 'nav':
+            if do == 'clarify':
+                prompt = True
+                dynamic_system_prompt_with_context = (
+                f"""
+                {self.system_prompt.strip()}
+                De huidige instructie is: '{self.get_instruction()}'.
+                De gebruiker vraagt om de volgende verduidelijking: '{match} '
+                Geef een verduidelijking van deze instructie, zodat de gebruiker het beter begrijpt. Formuleer op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen.   
+                """
+                )
+            else:
+                response_start = self.navigate(do)
+                instruction = self.get_instruction()
+                response_content = f"{response_content}{response_start}{instruction}"
+                # End of conversation pattern
+                if self.instruction_index == (len(self.active_instructions)-1) and self.context != 'e':
+                    response_content = f"{response_content} {self.patterns[1]}"
+                    self.context = 'e'
+        elif cat == self.domain:
+            response_content = do
+            # retrieved_qa = self.rag['qa'].similarity_search(user_input, k = '3')
+            # retrieved_docs = self.rag.similarity_search(user_input, k=3)
+            # retrieved_context = "\n\n".join([doc.page_content for doc in retrieved_docs])
     
         # instruction = self.get_instruction()
         # if say_instruction:
         #     response_content = f"{response_content}{instruction}"
         #else:
             # Create a dynamic system prompt to inject the current instruction and retrieved context
-            dynamic_system_prompt_with_context = (
-            f"""
-            {self.system_prompt.strip()}
-            De huidige digitale procedure stap is: '{instruction}'.
-            Daarnaast is de volgende aanvullende informatie beschikbaar:
-            {retrieved_context}
+        #     dynamic_system_prompt_with_context = (
+        #     f"""
+        #     {self.system_prompt.strip()}
+        #     De huidige digitale procedure stap is: '{instruction}'.
+        #     Daarnaast is de volgende aanvullende informatie beschikbaar:
+        #     {retrieved_context}
 
-            Gebruik deze informatie om de gebruiker te helpen.
-            Antwoord **altijd** alleen als de spraakassistent. Genereer **nooit** input van de gebruiker (bijv. 'Human:', 'Jij:', of vergelijkbaar).
-            """
-        )
+        #     Gebruik deze informatie om de gebruiker te helpen.
+        #     Antwoord **altijd** alleen als de spraakassistent. Genereer **nooit** input van de gebruiker (bijv. 'Human:', 'Jij:', of vergelijkbaar).
+        #     """
+        # )
         # Construct messages list for LLM invocation
+            # messages_for_llm = [
+            #     SystemMessage(content=dynamic_system_prompt_with_context)
+            #     ] + chat_history_messages + [
+            #     HumanMessage(content=user_input),
+            #     AIMessage(content="") # Prime the model to generate an AI response
+            # ]
+            # # Invoke the llm with the prepared messages, passing stop sequences directly
+            # agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'])
+            # response_content = agent_response # The LLM's generated text
+
+        # messages_for_llm = [
+        #     SystemMessage(content=dynamic_system_prompt_with_context)
+        #     ] + chat_history_messages + [
+        #     HumanMessage(content=user_input),
+        #     AIMessage(content="") # Prime the model to generate an AI response
+        # ]
+        if prompt:
+            # Construct messages list for LLM invocation
             messages_for_llm = [
                 SystemMessage(content=dynamic_system_prompt_with_context)
                 ] + chat_history_messages + [
@@ -145,16 +148,41 @@ class InstructAgent:
             ]
             # Invoke the llm with the prepared messages, passing stop sequences directly
             agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'])
-            response_content = agent_response # The LLM's generated text
-    
+            response_content = agent_response.split('Human:')[0] # The LLM's generated text
         # Update the ConversationBufferMemory with the interaction
         self.memory.save_context(
             {"input": user_input},
             {"output": response_content}
         )
-    
         return response_content
 
+    def navigate(self,do):
+        # perform the fitting navigation and add the fitting response 
+        if do == 'travel': # start ov instructions
+            self.active_instructions = self.instructions[do]
+            self.instruction_index = 0
+            self.domain = 'travel'
+            response_start = 'Ik ga je instrueren om een reis met het ov te plannen op 9292.nl. Stap 1: '
+        elif do == 'passport': # start passport instructions
+            self.active_instructions = self.instructions[do]
+            self.instruction_index = 0
+            self.domain = 'passport'
+            response_start = 'Ik ga je instrueren om een passpoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
+        elif do == 'next step': # move to next step
+            self.instruction_index += 1
+            response_start = ''
+        elif do == 'current step': # repeat current step
+            response_start = ''
+        elif do == 'previous step': # move to next step
+            if self.instruction_index == 0:
+                response_start = 'Je zit al bij stap 1, dus ik kan geen stap terug instrueren.'
+            else:
+                self.instruction_index -= 1
+                response_start = 'De vorige stap is: '
+        
+        self.context = str(self.instruction_index+1)
+        return response_start
+        
     ###############################################################################################
     ### Retrieval functions #######################################################################
     ###############################################################################################
@@ -170,14 +198,25 @@ class InstructAgent:
         Returns:
             str: The instruction or an error message if the index is out of bounds.
         """
-        if not self.instructions:
+        if not self.active_instructions:
             return "Er zijn momenteel geen instructies beschikbaar."
         if self.instruction_index < 0:
             return "U bent al bij de eerste instructie."  # 'You are already at the beginning of the instructions.'
-        #elif self.instruction_index >= len(self.instructions):
-        #    return "U heeft het einde van de instructies bereikt."  # 'You have reached the end of the instructions.'
+        elif self.instruction_index >= len(self.active_instructions):
+            return "U heeft het einde van de instructies bereikt."  # 'You have reached the end of the instructions.'
         else:
-            return self.instructions[self.instruction_index]
+            return self.active_instructions[self.instruction_index]
+
+    def parse_retrieved(self,retrieved):
+        match = retrieved['documents'][0]
+        #print('METADATAS',retrieved['metadatas'])
+        meta = retrieved['metadatas'][0][0]
+        #print('MATCH',match)
+        #print('META',meta)
+        cat = meta['type']
+        do = meta['action'] if cat == 'nav' else meta['answer']
+        return match,cat,do
+        
     
     ###############################################################################################
     ### Helper functions ##########################################################################
@@ -189,20 +228,22 @@ class InstructAgent:
 
         # Set the current instruction index to 0
         self.instruction_index = 0
-        print("ConversationBufferMemory initialized and current_instruction_index set to 0.")
     
     ###############################################################################################
     ### Preparation functions #######################################################################
     ###############################################################################################
     
-    def setup_rag(self, collection, qa_file, nav_file):
+    def setup_rag(self, collection, rag_files):
         self.rag = collection
-        self.add_qa(qa_file)
-        self.add_nav(qa_file)
+        for entry in rag_files:
+            if entry[0] == 'qa':
+                self.add_qa(entry[1],entry[2])
+            elif entry[0] == 'nav':
+                self.add_nav(entry[1])
 
-    def add_qa(self,qa_file):
+    def add_qa(self,domain,qa_file):
         docs = self.load_docs(qa_file)
-        docs_formatted, metadata_formatted = self.format_qa(docs)
+        docs_formatted, metadata_formatted = self.format_qa(domain,docs)
         uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
         self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)
 
@@ -212,15 +253,13 @@ class InstructAgent:
         uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
         self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)
         
-    def prepare_instructions(self,instruction_file):
+    def prepare_instructions(self,instruction_file,name):
         instructions = self.load_lines(instruction_file)
-        self.instructions = self.clean_lines(instructions)
-        print('Instruct',self.instructions)
+        self.instructions[name] = self.clean_lines(instructions)
     
     def prepare_patterns(self,pattern_file):
         patterns = self.load_lines(pattern_file)
         self.patterns = self.clean_lines(patterns)
-        print('PAT',self.patterns)
         
     def load_lines(self, lines_file):
         # Instantiate CSVLoader with the path to the lines file
@@ -254,7 +293,7 @@ class InstructAgent:
         documents = doc_loader.load()
         return documents
 
-    def format_qa(self,docs):
+    def format_qa(self,domain,docs):
         rag_documents = []
         rag_metadata = []
         for doc in docs:
@@ -263,10 +302,12 @@ class InstructAgent:
             cleaned_content = content.lstrip('\ufeff')
             # Split the content by ';' to extract Q&A parts
             parts = cleaned_content.split('\n')
-            input = parts[0].replace('Vraag: ', '').replace('Input: ', '').strip()  # Extract actual question
-            output = parts[1].replace('Antwoord: ', '').replace('Action: ', '').strip()  # Extract actual answer
-            meta = {'type':'qa', 'answer': output, 'step_context' : parts[2].replace('Context: ', '').strip()}
-            rag_documents.append(input)
+            inp_outp = parts[0].replace('Vraag: ', '').replace('Input: ', '').replace('answer: ', '').strip().split(';')  # Extract actual question
+            inp = inp_outp[0]
+            outp = inp_outp[1]
+            context = inp_outp[2]
+            meta = {'type':domain, 'answer': outp, 'step_context' : str(context)}
+            rag_documents.append(inp)
             rag_metadata.append(meta)
         return rag_documents, rag_metadata
 
@@ -279,10 +320,10 @@ class InstructAgent:
             cleaned_content = content.lstrip('\ufeff')
             # Split the content by ';' to extract Q&A parts
             parts = cleaned_content.split('\n')
-            input = parts[0].replace('Input: ', '').strip()  # Extract input command
-            output = parts[1].replace('Action: ', '').strip()  # Extract action
-            meta = {'type':'nav', 'action':output}
-            rag_documents.append(input)
+            inp = parts[0].replace('Input: ', '').strip()  # Extract input command
+            outp = parts[1].replace('Action: ', '').strip()  # Extract action
+            meta = {'type':'nav', 'action':outp, 'step_context':'all'}
+            rag_documents.append(inp)
             rag_metadata.append(meta)
         return rag_documents, rag_metadata
 
