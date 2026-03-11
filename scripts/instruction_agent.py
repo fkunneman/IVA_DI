@@ -16,7 +16,7 @@ class InstructAgent:
     """
     def __init__(self,llm):
         self.llm = llm
-        self.instruction_index = 0
+        self.instruction_index = None
         self.context = None
         self.domain = None
         self.instructions = {}
@@ -25,7 +25,7 @@ class InstructAgent:
         self.pattern = 'b'
         self.rag = None
         self.memory = None
-        self.system_prompt, self.step_by_step_prompt = self.set_prompts()
+        self.system_prompt = self.set_system_prompt()
 
     ###############################################################################################
     ### Dialog functions ##########################################################################
@@ -43,20 +43,15 @@ class InstructAgent:
             response = self.chat_with_agent(user_input)
             print(f"Agent: {response}")
             
-    def set_prompts(self):
+    def set_system_prompt(self):
         system_prompt = (
             """
-            Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Je praat op een toegankelijke manier, kan de gebruiker pro-actief tips geven en helpen met vragen. Je instructies gaan over het plannen van een reis met het openbaar vervoer. Hou je uitingen beknopt. 
+            Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer en over het aanvragen van een paspoort bij de gemeente Amsterdam. 
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren, en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+            Je praat op een toegankelijke manier, kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. 
             """
         )
-        step_by_step_prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_prompt),
-                MessagesPlaceholder("chat_history"),
-                ("human", "{input}")
-            ]
-        )
-        return system_prompt, step_by_step_prompt
+        return system_prompt
 
     def chat_with_agent(self, user_input: str) -> str:
         #global current_instruction_index, system_prompt # Ensure system_prompt is accessible
@@ -68,27 +63,37 @@ class InstructAgent:
         retrieved_context = ""
         instruction = ""
         prompt = False
-        # # Beginning of conversation pattern
-        # if not chat_history_messages:
-        #     response_content = self.patterns[0]
-        #     self.context = 'b'
-        # instruction conversation
-        # else:
-        # Handle explicit navigation commands first
         if self.context == 'b':
             retrieved = self.rag.query(query_texts=[processed_input],n_results=3,where={'$and': [{'type': 'nav'}, {'step_context': {'$in': ['all',self.context]}}]})
         else:
             retrieved = self.rag.query(query_texts=[processed_input],n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context]}}]})
-        match,cat,do = self.parse_retrieved(retrieved)
-        if cat == 'nav':
+        match,distance,cat,do = self.parse_retrieved(retrieved)
+        print('MATCH',match,', DISTANCE',distance,', CAT',cat,', DO',do)
+        if distance >= 0.50:
+           if self.context == 'b':
+                response_content = f"Ik verstond '{processed_input}'. Ik verwachtte dat je zou kiezen voor 'een reis plannen' of 'een afspraak maken voor een paspoort'. Voor welke van de twee kies je?"
+           else:
+                # 'Het gesprek tot nu aan de laatste uiting van gebruiker is als volgt:' {chat_history_messages}
+                # 'De gebruiker zegt nu dit: '{processed_input}
+                prompt = True
+                dynamic_system_prompt_with_context = (
+                f"""
+                {self.system_prompt.strip()}
+                'De laatste instructie die je gegeven hebt is: '{self.get_instruction()}'
+                Als de huidige uitspraak van de gebruiker past in de context van het gesprek, bijvoorbeeld een vraag of opmerking over de instructie, geef dan een passende reactie. Als uitspraak van de gebruiker niet past in de context, geef dit dan aan. 
+                """
+            # Als het niet goed aansluit, doe dan het volgende:
+            # 1) Herhaal naar de gebruiker zijn laatste uiting 
+            # 2) Als de laatste instructie is "Er zijn momenteel geen instructies beschikbaar", vraag de gebruiker dan om te kiezen voor "Reis" of "Paspoort". Als er een andere instructie is, herhaal dan deze instructie, en geef aan dat hoe de gebruiker verder kan gaan.
+                )
+        elif cat == 'nav':
             if do == 'clarify':
                 prompt = True
                 dynamic_system_prompt_with_context = (
                 f"""
                 {self.system_prompt.strip()}
                 De huidige instructie is: '{self.get_instruction()}'.
-                De gebruiker vraagt om de volgende verduidelijking: '{match} '
-                Geef een verduidelijking van deze instructie, zodat de gebruiker het beter begrijpt. Formuleer op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen.   
+                De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen.   
                 """
                 )
             else:
@@ -169,18 +174,22 @@ class InstructAgent:
             self.domain = 'passport'
             response_start = 'Ik ga je instrueren om een passpoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
         elif do == 'next step': # move to next step
-            self.instruction_index += 1
+            if self.context != 'b':
+                self.instruction_index += 1
             response_start = ''
         elif do == 'current step': # repeat current step
             response_start = ''
         elif do == 'previous step': # move to next step
             if self.instruction_index == 0:
-                response_start = 'Je zit al bij stap 1, dus ik kan geen stap terug instrueren.'
+                response_start = 'Je zit al bij stap 1, dus ik kan geen stap terug instrueren. '
             else:
                 self.instruction_index -= 1
                 response_start = 'De vorige stap is: '
-        
-        self.context = str(self.instruction_index+1)
+
+        try:
+            self.context = str(self.instruction_index+1)
+        except:
+            self.context = self.context
         return response_start
         
     ###############################################################################################
@@ -208,14 +217,13 @@ class InstructAgent:
             return self.active_instructions[self.instruction_index]
 
     def parse_retrieved(self,retrieved):
+        print(retrieved)
         match = retrieved['documents'][0]
-        #print('METADATAS',retrieved['metadatas'])
+        distance = retrieved['distances'][0][0]
         meta = retrieved['metadatas'][0][0]
-        #print('MATCH',match)
-        #print('META',meta)
         cat = meta['type']
         do = meta['action'] if cat == 'nav' else meta['answer']
-        return match,cat,do
+        return match,distance,cat,do
         
     
     ###############################################################################################
