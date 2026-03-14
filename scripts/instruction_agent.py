@@ -46,9 +46,9 @@ class InstructAgent:
     def set_system_prompt(self):
         system_prompt = (
             """
-            Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer en over het aanvragen van een paspoort bij de gemeente Amsterdam. 
-            De gebruiker probeert de instructies op een laptopscherm uit te voeren, en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
-            Je praat op een toegankelijke manier, kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. 
+            Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer of over het aanvragen van een paspoort bij de gemeente Amsterdam. 
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+            Je praat op een toegankelijke manier en kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. 
 
             User interface reis plannen:
 
@@ -79,11 +79,7 @@ class InstructAgent:
             Rij 2:
             - 'Paspoort, ID-kaart en rijbewijs'  - 'Verkiezingen'  - 'Belastingen'  - 'Stadsloketten'
 
-            Search bar (inactive)
-
             Gedrag venster 1:
-            - Search bar staat bovenaan de pagina
-            - Search bar werkt niet, kan gebruiker niet gebruiken
             - Elk item is in tekst weergegeven in blauw en kan worden aangeklikt.
             - Klikken opent de bijbehorende pagina of sectie.
             - Layout is visueel gegroepeerd: 2 rijen van 4 items.
@@ -128,7 +124,7 @@ class InstructAgent:
 
             Gedrag venster 3:
             - Section headers zijn in zwarte tekst 
-            - Section 'aanvragen' staat boven 'afspraak maken'
+            - Section 'aanvragen' staat boven clickable text 'afspraak maken'
 
             Venster 4 (form):
             
