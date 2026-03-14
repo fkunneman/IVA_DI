@@ -71,6 +71,67 @@ class InstructAgent:
 
             User interface paspoort aanvragen:
 
+            Venster 1: homepage
+
+            Clickable text:
+            Rij 1:
+            - 'Verhuizing doorgeven'  - 'Doe een melding'  - 'Parkeren'  - 'Afval'
+            Rij 2:
+            - 'Paspoort, ID-kaart en rijbewijs'  - 'Verkiezingen'  - 'Belastingen'  - 'Stadsloketten'
+
+            Search bar (inactive)
+
+            Gedrag venster 1:
+            - Search bar staat bovenaan de pagina
+            - Search bar werkt niet, kan gebruiker niet gebruiken
+            - Elk item is in tekst weergegeven in blauw en kan worden aangeklikt.
+            - Klikken opent de bijbehorende pagina of sectie.
+            - Layout is visueel gegroepeerd: 2 rijen van 4 items.
+
+            Venster 2: 
+
+            Clickable text:
+            Kolom 1:
+            - Paspoort 18 jaar en ouder 
+            - Paspoort jonger dan 18 jaar 
+            - Tweede paspoort 
+            - Vluchtelingenpaspoort 
+            - Vreemdelingenpaspoort
+            - Zakenpaspoort
+            Kolom 2:
+            - ID-kaart 18 jaar en ouder
+            - ID-kaart jonger dan 18 jaar
+            - Gratis ID-kaart met Stadspas
+
+            Section headers:
+            1.'Paspoort aanvragen'
+            2.'ID-kaart aanvragen'
+
+            Gedrag venster 2:
+            - Elk item is in tekst weergegeven in blauw en kan worden aangeklikt.
+            - Klikken opent de bijbehorende pagina of sectie.
+            - Layout is visueel gegroepeerd: 2 kolommen, eerste met zes items, tweede met drie items
+            - Section headers zijn zwarte tekst en staan boven de kolommen. 
+
+            Venster 3: 
+
+            Sections:
+            1. Voorwaarden: -Nederlandse nationaliteit -ingeschreven in de gemeente Amsterdam
+            2. Kosten: -standaard: €88.65 -spoed: €148.95 -bezorging: +€19 -paspoort 10 jaar geldig
+            3. Aanvragen
+            4. Meenemen: -alle paspoorten en ID-kaarten die u heeft -pasfoto in kleur
+            5. Ophalen of bezorgen: -na 1 week ophalen, bij spoed na 2 werkdagen
+
+            Clickable text:
+            - 'Afspraak maken'
+            - 'Adressen en openingstijden stadsloketten'
+
+            Gedrag venster 3:
+            - Section headers zijn in zwarte tekst 
+            - Section 'aanvragen' staat boven 'afspraak maken'
+
+            Venster 4 (form):
+            
             Velden: 
             - 'Persoon/personen' (getal)
             - 'Locatie' (radio buttons)
