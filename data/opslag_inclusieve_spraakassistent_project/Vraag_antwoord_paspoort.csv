@@ -5,7 +5,6 @@
 "Waar is de blauwe tekst?;De blauwe tekst 'Paspoort, ID-kaart en rijbewijs' staat links onder de blauwe tekst 'verhuizing doorgeven';1";
 "Waar moet ik klikken?;De blauwe tekst 'Paspoort, ID-kaart en rijbewijs' staat links onder de blauwe tekst 'verhuizing doorgeven';1";
 "Waar?;De blauwe tekst 'Paspoort, ID-kaart en rijbewijs' staat links onder de blauwe tekst 'verhuizing doorgeven';1";
-"Waar is het witte veld?;Het witte veld staat onder 'persoon personen';1";
 "Waar is de blauwe tekst?;De blauwe tekst 'Paspoort 18 jaar en ouder' staat onder de zwarte tekst 'Paspoort aanvragen';2";
 "Waar moet ik klikken?;De blauwe tekst 'Paspoort 18 jaar en ouder' staat onder de zwarte tekst 'Paspoort aanvragen';2";
 "Waar?;De blauwe tekst 'Paspoort 18 jaar en ouder' staat onder de zwarte tekst 'Paspoort aanvragen';2";
@@ -48,8 +47,8 @@
 "Waar moet ik heen?;Het veld 'voornaam' staat onder het veld 'achternaam';10";
 "Waar naartoe?;Het veld 'voornaam' staat onder het veld 'achternaam';10";
 "Waar moet ik heen?;Het veld 'geboortedatum' staat onder het veld 'voornaam';11";
-"Waar is de kalenderknop?;De kalenderknop staat rechts van het veld 'geboortedatum;11";
-"Kalenderknop?;De kalenderknop staat rechts van het veld 'geboortedatum;11";
+"Waar is de kalenderknop?;De kalenderknop staat rechts van het veld 'geboortedatum';11";
+"Kalenderknop?;De kalenderknop staat rechts van het veld 'geboortedatum';11";
 "Waarom wordt het veld rood?;Dat betekent dat je nog je geboortedatum in moet vullen;11";
 "Ongeldige datum, formaat: DD-MM-YYYY?;Dat betekent dat je je geboortedatum niet goed hebt ingevuld. Vul eerst de dag in, dan de maand, dan het jaar. ;11";
 "Hoe moet ik mijn geboortedatum invullen?;Vul eerst de dag in, dan de maand, dan het jaar. ;11";
