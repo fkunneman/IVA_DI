@@ -219,7 +219,7 @@ class InstructAgent:
             self.active_instructions = self.instructions[do]
             self.instruction_index = 0
             self.domain = 'passport'
-            response_start = 'Ik ga je instrueren om een passpoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
+            response_start = 'Ik ga je instrueren om een paspoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
         elif do == 'next step': # move to next step
             if self.context != 'b':
                 self.instruction_index += 1
