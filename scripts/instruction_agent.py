@@ -42,13 +42,117 @@ class InstructAgent:
                 break
             response = self.chat_with_agent(user_input)
             print(f"Agent: {response}")
-            
+
     def set_system_prompt(self):
         system_prompt = (
             """
-            Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer en over het aanvragen van een paspoort bij de gemeente Amsterdam. 
-            De gebruiker probeert de instructies op een laptopscherm uit te voeren.
-            Je praat op een toegankelijke manier, kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. 
+            Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer of over het aanvragen van een paspoort bij de gemeente Amsterdam. 
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+            Je praat op een toegankelijke manier en kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. 
+
+            User interface reis plannen:
+
+            Velden:
+            - 'van' (vertrekpunt)
+            - 'naar' (bestemming)
+
+            Knoppen
+            - 'nu' (standaard instelling)
+            - 'vertrek'
+            - 'aankomst'
+            - 'datum' (date picker)
+            - 'tijd' (time picker)
+            - 'plan je reis'
+
+            Gedrag interface:
+
+            - 'vertrek': de gebruiker kiest vertrekdag met 'datum' en vertrektijd met 'tijd'
+            - 'aankomst': de gebruiker kiest de aankomstdag met 'datum' en aankomsttijd met 'tijd'
+
+            User interface paspoort aanvragen:
+
+            Venster 1: homepage
+
+            Clickable text:
+            Rij 1:
+            - 'Verhuizing doorgeven'  - 'Doe een melding'  - 'Parkeren'  - 'Afval'
+            Rij 2:
+            - 'Paspoort, ID-kaart en rijbewijs'  - 'Verkiezingen'  - 'Belastingen'  - 'Stadsloketten'
+
+            Gedrag venster 1:
+            - Elk item is in tekst weergegeven in blauw en kan worden aangeklikt.
+            - Klikken opent de bijbehorende pagina of sectie.
+            - Layout is visueel gegroepeerd: 2 rijen van 4 items.
+
+            Venster 2:
+
+            Clickable text:
+            Kolom 1:
+            - Paspoort 18 jaar en ouder
+            - Paspoort jonger dan 18 jaar
+            - Tweede paspoort
+            - Vluchtelingenpaspoort
+            - Vreemdelingenpaspoort
+            - Zakenpaspoort
+            Kolom 2:
+            - ID-kaart 18 jaar en ouder
+            - ID-kaart jonger dan 18 jaar
+            - Gratis ID-kaart met Stadspas
+
+            Section headers:
+            1.'Paspoort aanvragen'
+            2.'ID-kaart aanvragen'
+
+            Gedrag venster 2:
+            - Elk item is in tekst weergegeven in blauw en kan worden aangeklikt.
+            - Klikken opent de bijbehorende pagina of sectie.
+            - Layout is visueel gegroepeerd: 2 kolommen, eerste met zes items, tweede met drie items
+            - Section headers zijn zwarte tekst en staan boven de kolommen.
+
+            Venster 3:
+
+            Sections:
+            1. Voorwaarden: -Nederlandse nationaliteit -ingeschreven in de gemeente Amsterdam
+            2. Kosten: -standaard: €88.65 -spoed: €148.95 -bezorging: +€19 -paspoort 10 jaar geldig
+            3. Aanvragen
+            4. Meenemen: -alle paspoorten en ID-kaarten die u heeft -pasfoto in kleur
+            5. Ophalen of bezorgen: -na 1 week ophalen, bij spoed na 2 werkdagen
+
+            Clickable text:
+            - 'Afspraak maken'
+            - 'Adressen en openingstijden stadsloketten'
+
+            Gedrag venster 3:
+            - Section headers zijn in zwarte tekst
+            - Section 'aanvragen' staat boven clickable text 'afspraak maken'
+
+            Venster 4 (form):
+
+            Velden:
+            - 'Persoon/personen' (getal)
+            - 'Locatie' (radio buttons)
+            - 'Achternaam'
+            - 'Voornaam'
+            - 'Geboortedatum'
+            - 'E-mailadres'
+            - 'Mobiel telefoonnummer'
+
+            Knoppen:
+            - '+'
+            - '-'
+            - Date picker (datum afspraak)
+            - 'Beschikbare tijden'
+            - Date picker (geboortedatum)
+            - 'Land code' (dropdown)
+            - 'Maak afspraak'
+            - 'Opnieuw beginnen'
+
+            Gedrag interface:
+
+            - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+            - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+            - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de date picker
+            - De user is niet verplicht om een telefoonnummer in te vullen
             """
         )
         return system_prompt
@@ -59,7 +163,7 @@ class InstructAgent:
         # Get current chat history from memory
         chat_history_messages = self.memory.load_memory_variables({})['chat_history']
         # Initialize response content
-        response_content = "" 
+        response_content = ""
         retrieved_context = ""
         instruction = ""
         prompt = False
@@ -84,7 +188,7 @@ class InstructAgent:
                 Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen."
                 """
             # Als het niet goed aansluit, doe dan het volgende:
-            # 1) Herhaal naar de gebruiker zijn laatste uiting 
+            # 1) Herhaal naar de gebruiker zijn laatste uiting
             # 2) Als de laatste instructie is "Er zijn momenteel geen instructies beschikbaar", vraag de gebruiker dan om te kiezen voor "Reis" of "Paspoort". Als er een andere instructie is, herhaal dan deze instructie, en geef aan dat hoe de gebruiker verder kan gaan.
                 )
         elif cat == 'nav':
@@ -97,8 +201,6 @@ class InstructAgent:
                 De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen.   
                 """
                 )
-            elif do == 'Done':
-                
             else:
                 response_start = self.navigate(do)
                 instruction = self.get_instruction()
@@ -112,7 +214,6 @@ class InstructAgent:
             # retrieved_qa = self.rag['qa'].similarity_search(user_input, k = '3')
             # retrieved_docs = self.rag.similarity_search(user_input, k=3)
             # retrieved_context = "\n\n".join([doc.page_content for doc in retrieved_docs])
-    
         # instruction = self.get_instruction()
         # if say_instruction:
         #     response_content = f"{response_content}{instruction}"
@@ -165,7 +266,7 @@ class InstructAgent:
         return response_content
 
     def navigate(self,do):
-        # perform the fitting navigation and add the fitting response 
+        # perform the fitting navigation and add the fitting response
         if do == 'travel': # start ov instructions
             self.active_instructions = self.instructions[do]
             self.instruction_index = 0
@@ -175,7 +276,7 @@ class InstructAgent:
             self.active_instructions = self.instructions[do]
             self.instruction_index = 0
             self.domain = 'passport'
-            response_start = 'Ik ga je instrueren om een passpoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
+            response_start = 'Ik ga je instrueren om een paspoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
         elif do == 'next step': # move to next step
             if self.context != 'b':
                 self.instruction_index += 1
@@ -194,7 +295,7 @@ class InstructAgent:
         except:
             self.context = self.context
         return response_start
-        
+
     ###############################################################################################
     ### Retrieval functions #######################################################################
     ###############################################################################################
@@ -202,11 +303,11 @@ class InstructAgent:
     def get_instruction(self):
         """
         Retrieves the instruction at the current_index, with boundary checks.
-    
+
         Args:
             current_index (int): The index of the current instruction.
             instruction_list (list): A list of all instructions.
-    
+
         Returns:
             str: The instruction or an error message if the index is out of bounds.
         """
@@ -227,23 +328,23 @@ class InstructAgent:
         cat = meta['type']
         do = meta['action'] if cat == 'nav' else meta['answer']
         return match,distance,cat,do
-        
-    
+
+
     ###############################################################################################
     ### Helper functions ##########################################################################
     ###############################################################################################
-    
+
     def clean_buffer(self):
         # Initialize ConversationBufferMemory for chat history
         self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 
         # Set the current instruction index to 0
         self.instruction_index = 0
-    
+
     ###############################################################################################
     ### Preparation functions #######################################################################
     ###############################################################################################
-    
+
     def setup_rag(self, collection, rag_files):
         self.rag = collection
         for entry in rag_files:
@@ -263,22 +364,22 @@ class InstructAgent:
         docs_formatted, metadata_formatted = self.format_nav(docs)
         uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
         self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)
-        
+
     def prepare_instructions(self,instruction_file,name):
         instructions = self.load_lines(instruction_file)
         self.instructions[name] = self.clean_lines(instructions)
-    
+
     def prepare_patterns(self,pattern_file):
         patterns = self.load_lines(pattern_file)
         self.patterns = self.clean_lines(patterns)
-        
+
     def load_lines(self, lines_file):
         # Instantiate CSVLoader with the path to the lines file
         loader = CSVLoader(lines_file)
-        
+
         # Load the documents
         loaded_documents = loader.load()
-        
+
         # Extract the 'page_content' from each document into a Python list
         lines = [doc.page_content for doc in loaded_documents]
 
@@ -296,7 +397,7 @@ class InstructAgent:
             else:
                 cleaned_lines.append(cleaned_str) # Fallback if splitting fails
         return cleaned_lines
-    
+
     def load_docs(self,f):
         # Instantiate CSVLoader with the path to the 'Vraag_antwoord_ov.csv' file
         doc_loader = CSVLoader(f, csv_args={"delimiter": ";","quotechar": '"'})
@@ -337,14 +438,3 @@ class InstructAgent:
             rag_documents.append(inp)
             rag_metadata.append(meta)
         return rag_documents, rag_metadata
-
-
-
-
-
-    
-
-
-    
-    
-    
