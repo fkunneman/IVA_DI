@@ -37,7 +37,7 @@ class InstructAgent:
         print(self.patterns[0])
         while True:
             user_input = input("You: ")
-            if user_input.lower() in ['quit', 'exit']:
+            if user_input.lower() in ['quit', 'exit', 'klaar', 'ready']:
                 print("Agent: Tot ziens!")
                 break
             response = self.chat_with_agent(user_input)
@@ -47,7 +47,7 @@ class InstructAgent:
         system_prompt = (
             """
             Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer en over het aanvragen van een paspoort bij de gemeente Amsterdam. 
-            De gebruiker probeert de instructies op een laptopscherm uit te voeren, en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren.
             Je praat op een toegankelijke manier, kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. 
             """
         )
@@ -68,19 +68,20 @@ class InstructAgent:
         else:
             retrieved = self.rag.query(query_texts=[processed_input],n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context]}}]})
         match,distance,cat,do = self.parse_retrieved(retrieved)
-        print('MATCH',match,', DISTANCE',distance,', CAT',cat,', DO',do)
+        #print('MATCH',match,', DISTANCE',distance,', CAT',cat,', DO',do)
         if distance >= 0.50:
            if self.context == 'b':
                 response_content = f"Ik verstond '{processed_input}'. Ik verwachtte dat je zou kiezen voor 'een reis plannen' of 'een afspraak maken voor een paspoort'. Voor welke van de twee kies je?"
            else:
                 # 'Het gesprek tot nu aan de laatste uiting van gebruiker is als volgt:' {chat_history_messages}
                 # 'De gebruiker zegt nu dit: '{processed_input}
+                #                 Als de huidige uitspraak van de gebruiker past in de context van het gesprek, bijvoorbeeld een vraag of opmerking over de instructie, geef dan een passende reactie. 
                 prompt = True
                 dynamic_system_prompt_with_context = (
                 f"""
                 {self.system_prompt.strip()}
                 'De laatste instructie die je gegeven hebt is: '{self.get_instruction()}'
-                Als de huidige uitspraak van de gebruiker past in de context van het gesprek, bijvoorbeeld een vraag of opmerking over de instructie, geef dan een passende reactie. Als uitspraak van de gebruiker niet past in de context, geef dit dan aan. 
+                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen."
                 """
             # Als het niet goed aansluit, doe dan het volgende:
             # 1) Herhaal naar de gebruiker zijn laatste uiting 
@@ -96,6 +97,8 @@ class InstructAgent:
                 De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen.   
                 """
                 )
+            elif do == 'Done':
+                
             else:
                 response_start = self.navigate(do)
                 instruction = self.get_instruction()
@@ -217,7 +220,7 @@ class InstructAgent:
             return self.active_instructions[self.instruction_index]
 
     def parse_retrieved(self,retrieved):
-        print(retrieved)
+        #print(retrieved)
         match = retrieved['documents'][0]
         distance = retrieved['distances'][0][0]
         meta = retrieved['metadatas'][0][0]
