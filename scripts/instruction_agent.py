@@ -37,18 +37,18 @@ class InstructAgent:
         print(self.patterns[0])
         while True:
             user_input = input("You: ")
-            if user_input.lower() in ['quit', 'exit', 'klaar', 'ready']:
-                print("Agent: Tot ziens!")
-                break
             response = self.chat_with_agent(user_input)
             print(f"Agent: {response}")
+            if response == "Tot ziens!":
+                break
+
 
     def set_system_prompt(self):
         system_prompt = (
             """
             Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer of over het aanvragen van een paspoort bij de gemeente Amsterdam. 
             De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
-            Je praat op een toegankelijke manier en kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. 
+            Je praat op een toegankelijke manier en kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. Formuleer niet uit jezelf een instructie. 
 
             User interface reis plannen:
 
@@ -172,14 +172,11 @@ class InstructAgent:
         else:
             retrieved = self.rag.query(query_texts=[processed_input],n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context]}}]})
         match,distance,cat,do = self.parse_retrieved(retrieved)
-        #print('MATCH',match,', DISTANCE',distance,', CAT',cat,', DO',do)
+        #print('MATCH',match,', DISTANCE',distance,', CAT',cat,', DO',do,'CONTEXT',self.context)
         if distance >= 0.50:
            if self.context == 'b':
                 response_content = f"Ik verstond '{processed_input}'. Ik verwachtte dat je zou kiezen voor 'een reis plannen' of 'een afspraak maken voor een paspoort'. Voor welke van de twee kies je?"
            else:
-                # 'Het gesprek tot nu aan de laatste uiting van gebruiker is als volgt:' {chat_history_messages}
-                # 'De gebruiker zegt nu dit: '{processed_input}
-                #                 Als de huidige uitspraak van de gebruiker past in de context van het gesprek, bijvoorbeeld een vraag of opmerking over de instructie, geef dan een passende reactie. 
                 prompt = True
                 dynamic_system_prompt_with_context = (
                 f"""
@@ -187,66 +184,66 @@ class InstructAgent:
                 'De laatste instructie die je gegeven hebt is: '{self.get_instruction()}'
                 Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen."
                 """
-            # Als het niet goed aansluit, doe dan het volgende:
-            # 1) Herhaal naar de gebruiker zijn laatste uiting
-            # 2) Als de laatste instructie is "Er zijn momenteel geen instructies beschikbaar", vraag de gebruiker dan om te kiezen voor "Reis" of "Paspoort". Als er een andere instructie is, herhaal dan deze instructie, en geef aan dat hoe de gebruiker verder kan gaan.
                 )
         elif cat == 'nav':
             if do == 'clarify':
-                prompt = True
-                dynamic_system_prompt_with_context = (
-                f"""
-                {self.system_prompt.strip()}
-                De huidige instructie is: '{self.get_instruction()}'.
-                De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen.   
-                """
-                )
+                if self.context == 'b':
+                    response_content = f"Er zijn twee dingen waar ik je bij kan helpen: een reis plannen op 9292.nl of een afspraak inplannen voor een paspoort bij de gemeente Amsterdam. Ik hoor graag van je welke van de twee instructies je wil horen." 
+                else:
+                    prompt = True
+                    dynamic_system_prompt_with_context = (
+                    f"""
+                    {self.system_prompt.strip()}
+                    De huidige instructie is: '{self.get_instruction()}'.
+                    De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen.   
+                    """
+                    )
+            elif do == 'Done':
+                if self.context == 'e':
+                    response_content = 'Tot ziens!'
+                else:
+                    response_content = f"Je zegt '{processed_input}'. Weet je zeker dat je wil stoppen met het gesprek?"
+                    self.context = 'q'
+            elif do == 'Confirm':
+                if self.context == 'q':
+                    response_content = 'Tot ziens!'
+                elif self.context in ['p','t']:
+                    if self.context == 'p':
+                        self.domain = 'passport'
+                        response_start = self.navigate('passport',processed_input)
+                    elif self.context == 't':
+                        self.domain = 'travel'
+                        response_start = self.navigate('travel',processed_input)
+                    instruction = self.get_instruction()
+                    response_content = f"{response_content}{response_start}{instruction}"
+                    # End of conversation pattern
+                    if self.instruction_index == (len(self.active_instructions)-1) and self.context != 'e':
+                        response_content = f"{response_content} {self.patterns[1]}"
+                        self.context = 'e'
+                else:
+                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."  
+            elif do == 'Reject':
+                if self.context == 'q' or self.context == 'p' or self.context == 't':
+                    response_content = f"Okay! De huidige instructie is: '{self.get_instruction()}' Laat het me weten als je hier vragen over hebt of naar de volgende instructie wil."
+                    try:
+                        self.context = str(self.instruction_index+1)
+                    except:
+                        self.context = self.context                   
+                else:
+                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."  
             else:
-                response_start = self.navigate(do)
-                instruction = self.get_instruction()
-                response_content = f"{response_content}{response_start}{instruction}"
+                response_start = self.navigate(do,processed_input)
+                if not self.context in ['t','p']:
+                    instruction = self.get_instruction()
+                    response_content = f"{response_content}{response_start}{instruction}"
+                else:
+                    response_content = response_start
                 # End of conversation pattern
                 if self.instruction_index == (len(self.active_instructions)-1) and self.context != 'e':
                     response_content = f"{response_content} {self.patterns[1]}"
                     self.context = 'e'
         elif cat == self.domain:
             response_content = do
-            # retrieved_qa = self.rag['qa'].similarity_search(user_input, k = '3')
-            # retrieved_docs = self.rag.similarity_search(user_input, k=3)
-            # retrieved_context = "\n\n".join([doc.page_content for doc in retrieved_docs])
-        # instruction = self.get_instruction()
-        # if say_instruction:
-        #     response_content = f"{response_content}{instruction}"
-        #else:
-            # Create a dynamic system prompt to inject the current instruction and retrieved context
-        #     dynamic_system_prompt_with_context = (
-        #     f"""
-        #     {self.system_prompt.strip()}
-        #     De huidige digitale procedure stap is: '{instruction}'.
-        #     Daarnaast is de volgende aanvullende informatie beschikbaar:
-        #     {retrieved_context}
-
-        #     Gebruik deze informatie om de gebruiker te helpen.
-        #     Antwoord **altijd** alleen als de spraakassistent. Genereer **nooit** input van de gebruiker (bijv. 'Human:', 'Jij:', of vergelijkbaar).
-        #     """
-        # )
-        # Construct messages list for LLM invocation
-            # messages_for_llm = [
-            #     SystemMessage(content=dynamic_system_prompt_with_context)
-            #     ] + chat_history_messages + [
-            #     HumanMessage(content=user_input),
-            #     AIMessage(content="") # Prime the model to generate an AI response
-            # ]
-            # # Invoke the llm with the prepared messages, passing stop sequences directly
-            # agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'])
-            # response_content = agent_response # The LLM's generated text
-
-        # messages_for_llm = [
-        #     SystemMessage(content=dynamic_system_prompt_with_context)
-        #     ] + chat_history_messages + [
-        #     HumanMessage(content=user_input),
-        #     AIMessage(content="") # Prime the model to generate an AI response
-        # ]
         if prompt:
             # Construct messages list for LLM invocation
             messages_for_llm = [
@@ -256,8 +253,10 @@ class InstructAgent:
                 AIMessage(content="") # Prime the model to generate an AI response
             ]
             # Invoke the llm with the prepared messages, passing stop sequences directly
-            agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'])
+            agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'], max_tokens=250)
             response_content = agent_response.split('Human:')[0] # The LLM's generated text
+            if len(response_content) > 250:
+                response_content = ''.join(response_content.split('.')[:-1])
         # Update the ConversationBufferMemory with the interaction
         self.memory.save_context(
             {"input": user_input},
@@ -265,18 +264,28 @@ class InstructAgent:
         )
         return response_content
 
-    def navigate(self,do):
+    def navigate(self,do,inp):
         # perform the fitting navigation and add the fitting response
         if do == 'travel': # start ov instructions
-            self.active_instructions = self.instructions[do]
-            self.instruction_index = 0
-            self.domain = 'travel'
-            response_start = 'Ik ga je instrueren om een reis met het ov te plannen op 9292.nl. Stap 1: '
+            if self.domain == 'passport':
+                response_start = f"Ik verstond '{inp}'. We doorlopen nu andere instructies. Weet je zeker dat je liever de instructies voor het plannen van een reis met het OV wil horen?"
+                self.context = 't'
+                return response_start
+            else:
+                self.active_instructions = self.instructions[do]
+                self.instruction_index = 0
+                self.domain = 'travel'
+                response_start = 'Ik ga je instrueren om een reis met het ov te plannen op 9292.nl. Stap 1: '
         elif do == 'passport': # start passport instructions
-            self.active_instructions = self.instructions[do]
-            self.instruction_index = 0
-            self.domain = 'passport'
-            response_start = 'Ik ga je instrueren om een paspoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
+            if self.domain == 'travel':
+                response_start = f"Ik verstond '{inp}'. We doorlopen nu andere instructies. Weet je zeker dat je liever de instructies voor het aanvragen van een paspoort wil horen?"
+                self.context = 'p'
+                return response_start
+            else:
+                self.active_instructions = self.instructions[do]
+                self.instruction_index = 0
+                self.domain = 'passport'
+                response_start = 'Ik ga je instrueren om een paspoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
         elif do == 'next step': # move to next step
             if self.context != 'b':
                 self.instruction_index += 1

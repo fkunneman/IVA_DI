@@ -3,12 +3,13 @@ Reis;travel
 OV;travel
 Openbaar vervoer;travel
 Ik zou graag de reis instructies willen;travel
+Ik wil toch een ov reis plannen;travel
+Ik wil toch een paspoort aanvragen;passport
 Paspoort;passport
 Gemeente;passport
 Idee;passport
 Ik zou graag instructies voor het paspoort hebben;passport
 Volgende;next step
-Klaar;next step
 Gedaan;next step
 Next;next step
 Vorige ;previous step
@@ -27,7 +28,7 @@ Wat?;clarify
 Wat moet ik doen?;clarify
 Ik weet het niet;clarify
 Ja;Confirm
-Zeker ;Confirm
+Zeker;Confirm
 Graag;Confirm
 Yes;Confirm
 Jawel;Confirm
@@ -37,3 +38,8 @@ No;Reject
 Klaar;Done
 Ready;Done
 Geen vragen;Done
+Quit;Done
+Stop;Done
+Einde;Done
+Einde gesprek;Done
+Ik wil stoppen;Done
