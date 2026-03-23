@@ -1,0 +1,10 @@
+Django>=6.0,<6.1
+transformers>=5.0,<6.0
+datasets
+django-crispy-forms
+crispy-bootstrap5
+langchain
+langchain-community
+langchain-classic
+chromadb
+accelerate
