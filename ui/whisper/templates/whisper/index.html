@@ -1,0 +1,27 @@
+{% extends "whisper/base.html" %}
+{% load crispy_forms_tags %}
+
+
+
+{% block title %}
+Whisper-UI
+{% endblock %}
+
+{% block content %}
+    <h1>Whisper</h1>
+
+    <p>Upload een geluidsbestand om een transcriptie te genereren:</p>
+
+    <form enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <input type="submit" class="btn btn-primary" value="Uploaden">
+    </form>
+
+    {% if transcription %}
+    <div class="bg-body-tertiary p-3 rounded-2 mt-3">
+    <h3>Transcriptie</h3>
+    <p>{{ transcription }}</p>
+    </div>
+    {% endif %}
+{% endblock %}

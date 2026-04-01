@@ -48,7 +48,7 @@ class InstructAgent:
             """
             Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer of over het aanvragen van een paspoort bij de gemeente Amsterdam. 
             De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
-            Maak korte zinnen. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. Formuleer niet uit jezelf een instructie. 
+            Je praat op een toegankelijke manier en kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. Formuleer niet uit jezelf een instructie. 
 
             User interface reis plannen:
 
@@ -74,32 +74,49 @@ class InstructAgent:
             Venster 1: homepage
 
             Clickable text:
-            - 'Verhuizing doorgeven'
-            - 'Paspoort, ID-kaart en rijbewijs'
+            Rij 1:
+            - 'Verhuizing doorgeven'  - 'Doe een melding'  - 'Parkeren'  - 'Afval'
+            Rij 2:
+            - 'Paspoort, ID-kaart en rijbewijs'  - 'Verkiezingen'  - 'Belastingen'  - 'Stadsloketten'
 
             Gedrag venster 1:
-            - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
-            - Clickable text wordt weergegeven in blauw, kan gebruiker op klikken
+            - Elk item is in tekst weergegeven in blauw en kan worden aangeklikt.
+            - Klikken opent de bijbehorende pagina of sectie.
+            - Layout is visueel gegroepeerd: 2 rijen van 4 items.
 
             Venster 2:
 
             Clickable text:
+            Kolom 1:
             - Paspoort 18 jaar en ouder
+            - Paspoort jonger dan 18 jaar
+            - Tweede paspoort
+            - Vluchtelingenpaspoort
+            - Vreemdelingenpaspoort
+            - Zakenpaspoort
+            Kolom 2:
+            - ID-kaart 18 jaar en ouder
+            - ID-kaart jonger dan 18 jaar
+            - Gratis ID-kaart met Stadspas
 
             Section headers:
-            -'Paspoort aanvragen'
-            -'ID-kaart aanvragen'
+            1.'Paspoort aanvragen'
+            2.'ID-kaart aanvragen'
 
             Gedrag venster 2:
-            - Clickable text wordt weergegeven in blauw en kan worden aangeklikt door de gebruiker.
+            - Elk item is in tekst weergegeven in blauw en kan worden aangeklikt.
             - Klikken opent de bijbehorende pagina of sectie.
+            - Layout is visueel gegroepeerd: 2 kolommen, eerste met zes items, tweede met drie items
             - Section headers zijn zwarte tekst en staan boven de kolommen.
-            - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
 
             Venster 3:
 
-            Section:
-            - 'Aanvragen'
+            Sections:
+            1. Voorwaarden: -Nederlandse nationaliteit -ingeschreven in de gemeente Amsterdam
+            2. Kosten: -standaard: €88.65 -spoed: €148.95 -bezorging: +€19 -paspoort 10 jaar geldig
+            3. Aanvragen
+            4. Meenemen: -alle paspoorten en ID-kaarten die u heeft -pasfoto in kleur
+            5. Ophalen of bezorgen: -na 1 week ophalen, bij spoed na 2 werkdagen
 
             Clickable text:
             - 'Afspraak maken'
@@ -107,7 +124,7 @@ class InstructAgent:
 
             Gedrag venster 3:
             - Section headers zijn in zwarte tekst
-            - Section 'Aanvragen' staat boven clickable text 'afspraak maken'
+            - Section 'aanvragen' staat boven clickable text 'afspraak maken'
 
             Venster 4 (form):
 
@@ -171,7 +188,7 @@ class InstructAgent:
         elif cat == 'nav':
             if do == 'clarify':
                 if self.context == 'b':
-                    response_content = f"Er zijn twee dingen waar ik je bij kan helpen: een reis plannen op 9292.nl of een afspraak inplannen voor een paspoort bij de gemeente Amsterdam. Ik hoor graag van je welke van de twee instructies je wil horen." 
+                    response_content = f"Er zijn twee dingen waar ik je bij kan helpen: een reis plannen op 9292.nl of een afspraak inplannen voor een paspoort bij de gemeente Amsterdam. Ik hoor graag van je welke van de twee instructies je wil horen."
                 else:
                     prompt = True
                     dynamic_system_prompt_with_context = (
@@ -204,16 +221,16 @@ class InstructAgent:
                         response_content = f"{response_content} {self.patterns[1]}"
                         self.context = 'e'
                 else:
-                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."  
+                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
             elif do == 'Reject':
                 if self.context == 'q' or self.context == 'p' or self.context == 't':
                     response_content = f"Okay! De huidige instructie is: '{self.get_instruction()}' Laat het me weten als je hier vragen over hebt of naar de volgende instructie wil."
                     try:
                         self.context = str(self.instruction_index+1)
                     except:
-                        self.context = self.context                   
+                        self.context = self.context
                 else:
-                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."  
+                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
             else:
                 response_start = self.navigate(do,processed_input)
                 if not self.context in ['t','p']:
@@ -239,7 +256,7 @@ class InstructAgent:
             agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'], max_tokens=250)
             response_content = agent_response.split('Human:')[0] # The LLM's generated text
             if len(response_content) > 250:
-                response_content = '.'.join(response_content.split('.')[:-1])
+                response_content = ''.join(response_content.split('.')[:-1])
         # Update the ConversationBufferMemory with the interaction
         self.memory.save_context(
             {"input": user_input},

@@ -1,0 +1,56 @@
+{% extends "whisper/base.html" %}
+{% load crispy_forms_tags %}
+
+
+
+{% block title %}
+LangChain
+{% endblock %}
+
+{% block content %}
+    <h1>LangChain</h1>
+
+    <div class="bg-body-tertiary p-3 rounded-2 mt-3">
+    <h3>Nieuwe sessie</h3>
+    <form method="post" action="{% url "new_session" %}">
+        {{ new_session_form|crispy }}
+        <input type="submit" class="btn btn-primary" value="Nieuwe sessie starten">
+        {% csrf_token %}
+    </form>
+    </div>
+
+    <div class="bg-body-tertiary p-3 rounded-2 mt-3">
+    {% if agent %}
+    <p class="mb-0"><strong>Sessienummer: {{ agent_id }}</strong><br>Model: {{ agent.model_name }}</p>
+    {% else %}
+        {% if has_expired %}
+            <p class="text-danger mb-0">Bestaande sessie is verlopen. Start een nieuwe sessie.</p>
+        {% else %}
+            <p class="mb-0">Geen sessie gestart.</p>
+        {% endif %}
+    {% endif %}
+    </div>
+
+    {% if agent %}
+    <div>
+    <form method="post" class="mb-3">
+        {{ message_form|crispy }}
+        <input type="submit" class="btn btn-primary" value="Verstuur">
+    {% csrf_token %}
+    </form>
+    {% for message in history %}
+        <p>
+            {% if message.origin == "agent" %}
+                <strong>Agent:</strong>
+            {% elif message.origin == "person" %}
+                <strong>Mens:</strong>
+            {% endif %}
+            {{ message.message }}
+        </p>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+
+
+{% endblock %}
