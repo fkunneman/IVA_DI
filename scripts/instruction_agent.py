@@ -256,7 +256,7 @@ class InstructAgent:
             agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'], max_tokens=250)
             response_content = agent_response.split('Human:')[0] # The LLM's generated text
             if len(response_content) > 250:
-                response_content = ''.join(response_content.split('.')[:-1])
+                response_content = '.'.join(response_content.split('.')[:-1])
         # Update the ConversationBufferMemory with the interaction
         self.memory.save_context(
             {"input": user_input},
