@@ -17,11 +17,8 @@ class InstructAgent:
     """
     Container for the instruction agent
     """
-    def __init__(self,llm,tokenizer,dct,tfidf):
+    def __init__(self,llm):
         self.llm = llm
-        self.tokenizer = tokenizer
-        self.dct = dct
-        self.tfidf = tfidf
         self.instruction_index = 0
         self.context = None
         self.prev_context = None
@@ -48,6 +45,7 @@ class InstructAgent:
             response = self.chat_with_agent(user_input)
             print(f"Agent: {response}")
             if response == "Tot ziens!":
+                
                 break
 
 
@@ -167,33 +165,17 @@ class InstructAgent:
     def chat_with_agent(self, user_input: str) -> str:
         #global current_instruction_index, system_prompt # Ensure system_prompt is accessible
         processed_input = user_input.lower()
-        #query_embedding = self.embedding_model.encode([processed_input])
-        #self.tokenizer.process(processed_input)
-        #query_tokenized = [x.text for x in self.tokenizer]
-        #query_bow = self.dct.doc2bow(query_tokenized)
-        # query_tfidf = self.tfidf[query_bow]
-        # query_weights = [x[1] for x in query_tfidf]
-        #qvector = numpy.zeros((len(self.tfidf.idfs), ), float)
-        #tfidf = self.tfidf[query_bow]
-        #for index, value in tfidf:
-        #    qvector[index] = value
-        # for w in query_bow:
-        #     qvector[w[0]] = self.tfidf.idfs[w[0]]
-        # qvector_np = numpy.array(qvector)
-        # Get current chat history from memory
         chat_history_messages = self.memory.load_memory_variables({})['chat_history']
         prompt = False
         if self.domain == None:
             retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': 'nav'}, {'step_context': {'$in': ['all',self.context]}}]})
-            #retrieved = self.rag.query(query_embeddings=qvector,n_results=3,where={'$and': [{'type': 'nav'}, {'step_context': {'$in': ['all',self.context]}}]})
         else:
-            retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context]}}]})
-            #retrieved = self.rag.query(query_embeddings=qvector,n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context]}}]})
+            retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context,'']}}]})
         match,distance,cat,do = self.parse_retrieved(retrieved)
-        print('MATCH',match,', DISTANCE',distance,', CAT',cat,', DO',do,'CONTEXT',self.context)
+        print('MATCH',match,', DISTANCE',distance,', CAT',cat,', DO',do,'CONTEXT',self.context,'INDEX',self.instruction_index)
         response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,match,distance,cat,do)
         if prompt:
-            print('dynamic system prompt',dynamic_system_prompt_with_context)
+            #print('dynamic system prompt',dynamic_system_prompt_with_context)
             start_time = time.perf_counter()
             # Construct messages list for LLM invocation
             messages_for_llm = [
@@ -218,7 +200,7 @@ class InstructAgent:
         return response_content
 
     def select_response(self,processed_input,match,distance,cat,do):
-        print('sel_res',match,distance,cat,do)
+        #print('sel_res',match,distance,cat,do)
         prompt = False
         # Initialize response content
         response_content = ""
@@ -274,7 +256,7 @@ class InstructAgent:
                         response_start = self.navigate('passport',processed_input)
                     elif self.context == 't':
                         self.domain = 'travel'
-                        self.instruction = 0
+                        self.instruction_index = 0
                         response_start = self.navigate('travel',processed_input)
                     instruction = self.get_instruction()
                     response_content = f"{response_content}{response_start}{instruction}"
@@ -329,6 +311,7 @@ class InstructAgent:
                     self.active_instructions = self.instructions[do]
                     self.domain = 'travel'
                     response_start = 'Ik ga je instrueren om een reis met het ov te plannen op 9292.nl. Stap 1: '
+                    self.context = '1'
         elif do == 'passport': # start passport instructions
             if self.domain == 'travel':
                 response_start = f"Ik verstond '{inp}'. We doorlopen nu andere instructies. Weet je zeker dat je liever de instructies voor het aanvragen van een paspoort wil horen?"
@@ -342,23 +325,24 @@ class InstructAgent:
                     self.active_instructions = self.instructions[do]
                     self.domain = 'passport'
                     response_start = 'Ik ga je instrueren om een paspoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
-        elif do == 'next step': # move to next step
-            if self.domain != None:
-                self.instruction_index += 1
-            response_start = ''
-        elif do == 'current step': # repeat current step
-            response_start = ''
-        elif do == 'previous step': # move to next step
-            if self.instruction_index == 0:
-                response_start = 'Je zit al bij stap 1, dus ik kan geen stap terug instrueren. '
-            else:
-                self.instruction_index -= 1
-                response_start = 'De vorige stap is: '
-
-        try:
-            self.context = str(self.instruction_index+1)
-        except:
-            self.context = self.context
+                    self.context = '1'
+        else:
+            if do == 'next step': # move to next step
+                if self.domain != None:
+                    self.instruction_index += 1
+                response_start = ''
+            elif do == 'current step': # repeat current step
+                response_start = ''
+            elif do == 'previous step': # move to next step
+                if self.instruction_index == 0:
+                    response_start = 'Je zit al bij stap 1, dus ik kan geen stap terug instrueren. '
+                else:
+                    self.instruction_index -= 1
+                    response_start = 'De vorige stap is: '
+            try:
+                self.context = str(self.instruction_index+1)
+            except:
+                self.context = self.context
         return response_start
 
     ###############################################################################################
@@ -386,7 +370,6 @@ class InstructAgent:
             return self.active_instructions[self.instruction_index]
 
     def parse_retrieved(self,retrieved):
-        #print(retrieved)
         match = retrieved['documents'][0]
         distance = retrieved['distances'][0][0]
         meta = retrieved['metadatas'][0][0]
@@ -422,62 +405,13 @@ class InstructAgent:
         docs = self.load_docs(qa_file)
         docs_formatted, metadata_formatted = self.format_qa(domain,docs)
         uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
-        # docs_tokenized = []
-        # for doc in docs_formatted:
-        #     self.tokenizer.process(doc)
-        #     tokenized = [x.text for x in self.tokenizer]
-        #     docs_tokenized.append(tokenized)
-        # docs_bow = [self.dct.doc2bow(doc) for doc in docs_tokenized]
-        # #docs_vectors = numpy.zeros((len(docs_bow),len(self.tfidf.idfs)), float)
-        # row = []
-        # col = []
-        # data = []
-        # for i,doc in enumerate(docs_bow):
-        #     tfidf = self.tfidf[doc]
-        #     for index, value in tfidf:
-        #         row.append(i)
-        #         col.append(index)
-        #         data.append(value)
-        #         #docs_vectors[i][index] = value
-        # docs_vectors = csr_matrix((data, (row, col)), shape=(len(docs_bow), len(self.tfidf.idfs))).toarray()
-        #docs_vectors_np = [numpy.array(doc) for doc in docs_vectors] 
-        # docs_tfidf = self.tfidf[docs_bow]
-        # docs_weights = [[x[1] for x in doc] for doc in docs_tfidf]
-        #print(docs_weights)
-        #docs_embeddings = self.embedding_model.encode(docs_formatted)
-        #self.rag.add(ids=uuids, documents=docs_formatted, embeddings=docs_embeddings, metadatas=metadata_formatted)
         self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)
 
     def add_nav(self,nav_file):
         docs = self.load_docs(nav_file)
         docs_formatted, metadata_formatted = self.format_nav(docs)
         uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
-        # docs_tokenized = []
-        # for doc in docs_formatted:
-        #     self.tokenizer.process(doc)
-        #     tokenized = [x.text for x in self.tokenizer]
-        #     docs_tokenized.append(tokenized)
-        # docs_bow = [self.dct.doc2bow(doc) for doc in docs_tokenized]
-        # #docs_vectors = numpy.zeros((len(docs_bow),len(self.tfidf.idfs)), float)
-        # row = []
-        # col = []
-        # data = []
-        # for i,doc in enumerate(docs_bow):
-        #     tfidf = self.tfidf[doc]
-        #     for index, value in tfidf:
-        #         row.append(i)
-        #         col.append(index)
-        #         data.append(value)
-        #         #docs_vectors[i][index] = value
-        # docs_vectors = csr_matrix((data, (row, col)), shape=(len(docs_bow), len(self.tfidf.idfs))).toarray()
-        #docs_vectors_np = [numpy.array(doc) for doc in docs_vectors] 
-        # docs_tfidf = self.tfidf[docs_bow]
-        # docs_weights = [[x[1] for x in doc] for doc in docs_tfidf]
-        # print(docs_weights)
-        #docs_embeddings = self.embedding_model.encode(docs_formatted)
-        self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)
-        #self.rag.add(ids=uuids, documents=docs_formatted, embeddings=docs_vectors,metadatas=metadata_formatted)
-        
+        self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)   
 
     def prepare_instructions(self,instruction_file,name):
         instructions = self.load_lines(instruction_file)
