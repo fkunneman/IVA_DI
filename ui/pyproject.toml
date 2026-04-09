@@ -13,4 +13,5 @@ dependencies = [
     "langchain-classic",
     "chromadb",
     "accelerate",
+    "scipy",
 ]
