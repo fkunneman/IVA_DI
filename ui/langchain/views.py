@@ -13,13 +13,13 @@ def langchain_webui(request: HttpRequest) -> HttpResponse:
 
     # Use existing session if available, otherwise "no session"
     agent_id = request.session.get('agent_id', None)
-    assert isinstance(agent_id, str)
     agent = agents.get(agent_id)
     if agent is None:
         agent_id = None  # Session has expired
         has_expired = True
         history = None
     else:
+        assert isinstance(agent_id, str)
         history = histories[agent_id]
 
     if request.method == 'POST' and agent is not None:
