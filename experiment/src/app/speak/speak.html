@@ -1,0 +1,39 @@
+<div style="height: 100vh" class="d-flex align-items-center justify-content-center" [ngClass]="{
+  'bg-primary-subtle': state() == 'recording',
+  'bg-warning-subtle': state() == 'waiting',
+  'bg-success-subtle': state() == 'speaking',
+}">
+  <div class="card m-3 align-self-center align-items-center justify-content-center" style="width: 80vw; height: 40vh"
+    [ngClass]="{
+  'text-bg-primary': state() == 'recording',
+  'text-bg-warning': state() == 'waiting',
+  'text-bg-success': state() == 'speaking',
+}">
+    @switch (state()) {
+    @case ('ready') {
+    <button class="btn btn-lg btn-primary fs-1" (click)="record()">Opnemen</button>
+    }
+
+    @case ('recording') {
+    <div class="spinner-grow text-light mb-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <button class="btn btn-lg btn-success fs-1 mb-3" (click)="send()">Verstuur</button>
+    <button class="btn btn-lg btn-danger fs-1" (click)="cancel()">Annuleer</button>
+    }
+
+    @case ('waiting') {
+    <div class="spinner-border" style="width: 6rem; height: 6rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    }
+
+    @case ('speaking') {
+    <div class="spinner-grow text-light" style="width: 6rem; height: 6rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    }
+    }
+  </div>
+  <audio #audio></audio>
+</div>

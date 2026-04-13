@@ -1,0 +1,430 @@
+<img class="m-4" width="200" src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Logo_of_Gemeente_Amsterdam.svg"
+  alt="Gemeente Amsterdam" />
+<div class="container">
+  @if (confirmed) {
+  <div class="container" style="max-width: 600px">
+    <h1>De afspraak is geregistreerd </h1>
+
+    <p>U krijgt een mail over uw afspraak.</p>
+
+    <table class="table table-borderless">
+      <tr>
+        <th scope="row">Dienst</th>
+        <td>Paspoort aanvragen</td>
+      </tr>
+      <tr>
+        <th scope="row">Kantoor</th>
+        <td>Publiekszaken </td>
+      </tr>
+      <tr>
+        <th scope="row">Datum en tijd</th>
+        <td>{{steps()[2].subtitle}} </td>
+      </tr>
+      <tr>
+        <th scope="row">Duratie</th>
+        <td> 10 minuten</td>
+      </tr>
+      <tr>
+        <th scope="row">Achternaam</th>
+        <td>{{appointmentForm.lastname().value()}} </td>
+      </tr>
+      <tr>
+        <th scope="row">Voornaam</th>
+        <td> {{appointmentForm.firstname().value()}}</td>
+      </tr>
+      <tr>
+        <th scope="row">Geboortedatum</th>
+        <td>{{appointmentForm.birthday().value()}} </td>
+      </tr>
+      <tr>
+        <th scope="row">E-mailadres</th>
+        <td> {{appointmentForm.email().value()}}</td>
+      </tr>
+      <tr>
+        <th scope="row">Mobiel telefoonnummer</th>
+        <td> {{appointmentForm.phone().value()}}</td>
+      </tr>
+    </table>
+
+    <div class="alert alert-warning border-0 rounded-0" role="alert">
+      Dit is een onderzoek. Er is niet een echte afspraak gemaakt bij de gemeente.
+    </div>
+
+    <h2>Extra informatie</h2>
+    <h3>Wijzigen /annuleren van uw afspraak</h3>
+    <p>
+      U kunt uw afspraak wijzigen of annuleren door te klikken op onderstaande link.<br />
+      <a href="" (click)="erase()">Afspraak wijzigen of annuleren</a>
+    </p>
+    <h3>Informatie</h3>
+    <h4>Dit neemt u mee naar de afspraak</h4>
+    <p>
+      Alle reisdocumenten (paspoort en 10-kaart) die u nu hebt ook als ze zijn verlopen. Een kleurenpasfoto die voldoet
+      aan
+      de
+      eisen voor pasfoto's. Eigen foto's en schoolfoto's zijn daarom niet geschikt. De goedgelijkende pasfoto mag
+      maximaal
+      6
+      maanden oud zijn op het moment van de aanvraag. U kunt geen pasfoto laten maken bij de gemeente. Een bankpas of
+      contant
+      geld. U betaalt direct bij de aanvraag.</p>
+    <h4>
+      Vermelden naam partner en oud reisdocument
+    </h4>
+    <p>
+      Bent u gehuwd of hebt u een geregistreerd partnerschap? Dan kunt u bij de aanvraag van uw reisdocument aangeven
+      dat
+      u
+      hierin naast uw eigen achternaam ook de achternaam van uw echtgeno(o)t(e) of geregistreerd partner wilt laten
+      opnemen.
+      Wij adviseren u dit te doen als uw kinderen niet uw achternaam hebben. Dit kan zorgen voor een snellere
+      grenscontrole.
+    </p>
+
+    <h4>
+      Kinderen
+    </h4>
+
+    <p>
+      Voor een kind tot en met 17 jaar (paspoort) of tot en met 11 jaar (identiteitskaart):
+      Is online of schriftelijke toestemming van de ouder(s) verplicht.
+      Uw kind moet zelf bij de aanvraag van het reisdocument aanwezig zijn.
+    </p>
+    <h4>
+      Meer informatie
+    </h4>
+    <p>
+      Kijk ook voor het geven van toestemming en andere belangrijke informatie.
+    </p>
+    <h4>
+      Reisdocument afhalen of laten bezorgen
+    </h4>
+    <p>
+      U kunt uw reisdocument 6 werkdagen na de aanvraag vanaf 12.00 uur afhalen. Bijvoorbeeld: u vraagt het document op
+      maandag aan. U kunt het dan de week erna vanaf dinsdag 12.00 uur ophalen. Ook voor het afhalen van reisdocumenten
+      werken
+      wij uitsluitend op afspraak. U haalt het reisdocument af op dezelfde locatie waar u het aangevraagd heeft.
+    </p>
+    <p>
+      Wij verzoeken u om ook alvast direct voor het afhalen een afspraak te maken (afhaalafspraak paspoort maken).
+      Daarnaast
+      kunt u ervoor kiezen om, bij een standaard aanvraag, het reisdocument te laten bezorgen. Hier zijn kosten aan
+      verbonden.
+      De baliemedewerker kan u er meer over vertellen als u langs komt voor de aanvraag. Een spoedaanvraag kunt u, mits
+      vóór
+      14.00 uur aangevraagd, de volgende werkdag afhalen. Het document moet binnen 3 maanden na de aanvraag opgehaald
+      wonden.
+      Daarna wordt het vernietigd.
+    </p>
+
+    <div class="alert alert-secondary border-0 rounded-0">
+      Publiekszaken Adres: {{steps()[1].subtitle}}
+    </div>
+
+    <button class="btn btn-primary rounded-0" (click)="erase()">TERUG NAAR DE STARTPAGINA</button>
+    <br />
+    <br />
+  </div>
+  }
+  @else {
+  <h1>Afspraak maken</h1>
+  <div ngbAccordion [closeOthers]="true" class="accordion-flush mb-5">
+    @for (step of steps(); track step.number) {
+    <div ngbAccordionItem [collapsed]="step.number !== currentStep" (show)="show(step.number)">
+      <h2 ngbAccordionHeader ngbAccordionToggle class="p-4 my-3" role="button"
+        [ngClass]="step.number==currentStep?'bg-primary text-white':'bg-secondary-subtle'">
+        <div class="row">
+          <div class="col col-1">
+            {{ step.number }}
+          </div>
+          <div class="col">
+            <div class="row accordion-icon" [ngClass]="{'open': step.number===currentStep}">
+              <div class="col">
+                {{ step.title }}
+              </div>
+            </div>
+            @if (step.subtitle) {
+            <p class="fs-5">
+              {{ step.subtitle }}
+            </p>
+            }
+          </div>
+        </div>
+      </h2>
+      <div ngbAccordionCollapse>
+        <div ngbAccordionBody>
+          <ng-template>
+            @switch (step.number) {
+            @case (1) {
+            <div class="row mb-3 justify-content-end">
+              <div class="col col-3">
+                <input type="search" class="form-control" id="searchProduct" placeholder="Zoeken" autocomplete="off"
+                  [formField]="appointmentForm.searchProduct">
+                @let productSearchText = appointmentForm.searchProduct().value();
+                @let productMatched = 'paspoort aanvragen'.indexOf(productSearchText.toLowerCase()) >= 0;
+                @if (productSearchText) {
+                <div class="form-text">
+                  @if (productMatched) {
+                  1 product gevonden voor "{{productSearchText}}"
+                  }
+                  @else {
+                  Geen producten gevonden voor "{{productSearchText}}"
+                  }
+                </div>
+                }
+              </div>
+            </div>
+            @if (productMatched) {
+            <div class="alert alert-secondary rounded-0 border-0">
+              <div class="form-check">
+                <input class="form-check-input" checked type="radio" name="radioDefault" id="radioDefault1">
+                <label class="form-check-label" for="radioDefault1">
+                  Paspoort aanvragen
+                </label>
+              </div>
+            </div>
+            <label>
+              Persoon/personen
+            </label>
+            <div class="row mb-3">
+              <div class="col col-3 col-lg-2">
+                <div class="input-group input-group-lg">
+                  <button class="btn btn-secondary rounded-0" type="button" (click)="lessPeople()">-</button>
+                  <input type="number" class="form-control" [formField]="appointmentForm.persons">
+                  <button class="btn btn-secondary rounded-0" type="button" (click)="moarPeople()">+</button>
+                </div>
+              </div>
+            </div>
+            @if (appointmentForm.persons().value() <1) { <div class="alert alert-danger rounded-0 border-0"
+              role="alert">
+              Selecteer ten minste één persoon voor deze dienst of deselecteer deze
+        </div>
+        }
+        }
+        }
+
+        @case (2) {
+        @if (appointmentForm.persons().value() <1) { <div class="alert alert-danger rounded-0 border-0" role="alert">
+          Graag eerst een dienst kiezen, daarna kunt u voor een locatie kiezen
+      </div>
+      }
+      @else {
+      Niet alle locaties handelen alle diensten af
+
+      <div class="row mb-3 justify-content-end">
+        <div class="col col-3">
+          <input type="search" class="form-control" id="searchLocation" placeholder="Zoeken" autocomplete="off"
+            [formField]="appointmentForm.searchLocation">
+          @let locationSearchText = appointmentForm.searchLocation().value();
+          @if (locationSearchText) {
+          <div class="form-text">
+            @if (matchedLocations.length) {
+            {{matchedLocations.length}} locatie(s) gevonden voor "{{locationSearchText}}"
+            }
+            @else {
+            Geen locatie gevonden voor "{{locationSearchText}}"
+            }
+          </div>
+          }
+        </div>
+      </div>
+
+      @for (location of matchedLocations;track location.name) {
+      <div class="alert alert-secondary rounded-0 border-0">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" id="{{location.name}}" [value]="location.name"
+            [formField]="appointmentForm.location">
+          <label class="form-check-label" for="{{location.name}}">
+            <strong>{{location.name}}</strong> <br />
+            {{location.location}}
+          </label>
+        </div>
+      </div>
+      }
+      }
+      }
+
+      @case (3) {
+      @if (!appointmentForm.location().value()) {
+      <div class="alert alert-danger rounded-0 border-0" role="alert">
+        Graag eerst een locatie en een dienst selecteren, daarna kunt u een datum en tijd kiezen
+      </div>
+      }
+      @else if (loadingMonths) {
+      <div class="text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      }
+      @else {
+      @let month = availableTimeslots.months[appointmentForm.showMonth().value() - currentMonth];
+      <div class="row">
+        <div class="col-1">
+          <button class="btn btn-primary rounded-circle" href="#" aria-label="Vorige"
+            [disabled]="month.month <= currentMonth" (click)="showMonth(-1)">
+            <span aria-hidden="true">&lt;</span>
+          </button>
+        </div>
+        <div class="col text-center">{{month.title}}</div>
+        <div class="col-1 text-right">
+          <button class="btn btn-primary rounded-circle" href="#" aria-label="Volgende"
+            [disabled]="month.month >= currentMonth + availableTimeslots.months.length - 1" (click)="showMonth(1)">
+            <span aria-hidden="true">&gt;</span>
+          </button>
+        </div>
+      </div>
+      <table class="table table-borderless text-center">
+        <thead>
+          <tr>
+            <th scope="col">ma</th>
+            <th scope="col">di</th>
+            <th scope="col">wo</th>
+            <th scope="col">do</th>
+            <th scope="col">vr</th>
+            <th scope="col">za</th>
+            <th scope="col">zo</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (week of month.weeks; track week) {
+          <tr>
+            @for (day of week; track day) {
+            <td>
+              @if (day.number) {
+              @let selected = appointmentForm.month().value() === month.month && appointmentForm.dayNumber().value() ===
+              day.number;
+              <button [ngClass]="{'btn-link': day.timeslots.length && !selected, 'btn-primary': selected}"
+                class="btn border-0 rounded" [disabled]="day.timeslots.length === 0" (click)="selectDay(month, day)">
+                {{day.number}}
+              </button>
+              }
+            </td>
+            }
+          </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (availableDayTimeslots) {
+      @if (loadingSlots) {
+      <div class="text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      }
+      @else {
+      <p>Beschikbare tijden voor {{appointmentForm.dateString().value()}}</p>
+      <div class="row row-cols-5 gy-3 mx-5 px-5">
+        @for (slot of availableDayTimeslots.timeslots; track slot) {
+        <div class="col">
+          <button class="btn btn-outline-primary" (click)="selectTimeslot(slot)">
+            {{slot}}
+          </button>
+        </div>
+        }
+      </div>
+      }
+      }
+
+      }
+      }
+
+      @case (4) {
+      @if (!appointmentForm.slot().value()) {
+      <div class="alert alert-danger rounded-0 border-0" role="alert">
+        Graag eerst een locatie, dienst en datum en tijd selecteren, daarna kunt u uw contact informatie opgeven
+      </div>
+      }
+      @else {
+      <p>
+        <strong class="fs-4">Dit heeft u ingevuld:</strong><br />
+
+        {{steps()[0].subtitle}}<br />
+        {{steps()[1].subtitle}}<br />
+        {{steps()[2].subtitle}}
+        <br /><br />
+        We sturen een afspraakbevestiging. Voer uw e-mailadres (verplicht) en mobiele telefoonnummer (optioneel) in.
+      </p>
+      <div class="form-floating mb-3">
+        <input [ngClass]="{'is-invalid': appointmentForm.lastname().touched() && appointmentForm.lastname().invalid()}"
+          type="text" class="form-control" id="achternaam" placeholder="Achternaam *" autocomplete="off"
+          [formField]="appointmentForm.lastname">
+        <label for="floatingInput">Achternaam</label>
+        <div class="invalid-feedback">
+          Achternaam vereist
+        </div>
+      </div>
+      <div class="form-floating mb-3">
+        <input
+          [ngClass]="{'is-invalid': appointmentForm.firstname().touched() && appointmentForm.firstname().invalid()}"
+          type="text" class="form-control" id="voornaam" placeholder="Voornaam *" autocomplete="off"
+          [formField]="appointmentForm.firstname">
+        <label for="floatingInput">Voornaam</label>
+        <div class="invalid-feedback">
+          Voornaam vereist
+        </div>
+      </div>
+      <div class="form-floating mb-3">
+        <input type="date"
+          [ngClass]="{'is-invalid': appointmentForm.birthday().touched() && appointmentForm.birthday().invalid()}"
+          class="form-control" id="geboortedatum" placeholder="Geboortedatum *" autocomplete="off"
+          [formField]="appointmentForm.birthday">
+        <label for="floatingInput">Geboortedatum</label>
+        <div class="invalid-feedback">
+          Geboortedatum vereist
+        </div>
+      </div>
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control" id="email" placeholder="E-mailadres *" autocomplete="off"
+          [ngClass]="{'is-invalid': appointmentForm.email().touched() && appointmentForm.email().invalid()}"
+          [formField]="appointmentForm.email">
+        <label for="floatingInput">E-mailadres</label>
+        <div class="invalid-feedback">
+          E-mailadres vereist
+        </div>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="telefoonnummer" placeholder="Mobiel telefoonnummer"
+          [formField]="appointmentForm.phone" autocomplete="off">
+        <label for="telefoonnummer">Mobiel telefoonnummer</label>
+        <div class="form-text">
+          (formaat: xxxxxxxxxx)
+        </div>
+      </div>
+      <div class="row">
+        <div class="col col-md-auto">
+          <button class="btn btn-light btn-lg mr-2" (click)="erase()">Opnieuw beginnen</button>
+        </div>
+        <div class="col col-md-auto">
+          @if (loadingConfirmation) {
+          <button class="btn btn-lg btn-secondary" type="button" disabled>
+            <span class="spinner-grow spinner-grow-sm" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">Loading...</span>
+          </button>
+          }
+          @else {
+          <button class="btn btn-secondary btn-lg" (click)="confirm()" [disabled]="appointmentForm().invalid()"> Maak
+            afspraak</button>
+          }
+        </div>
+      </div>
+
+      }
+      }
+      }
+      </ng-template>
+    </div>
+  </div>
+</div>
+}
+</div>
+<div class="alert alert-warning border-0 rounded-0" role="alert">
+  Dit is een onderzoek. Er wordt niet een echte afspraak gemaakt bij de gemeente. Huidige tijd: {{time()}}
+</div>
+}
+
+
+</div>

@@ -1,0 +1,44 @@
+[ngbAccordionHeader] {
+  --bs-primary-rgb: 0, 70, 153;
+  transition: background-color ease 0.2s;
+}
+
+.accordion-icon {
+  &::after {
+    --bs-accordion-btn-icon-width: 2rem;
+    align-self: center;
+    flex-shrink: 0;
+    width: var(--bs-accordion-btn-icon-width);
+    height: var(--bs-accordion-btn-icon-width);
+    margin-left: auto;
+    margin-right: 1rem;
+    content: "";
+    background-image: var(--bs-accordion-btn-icon);
+    background-repeat: no-repeat;
+    background-size: var(--bs-accordion-btn-icon-width);
+    transition: var(--bs-accordion-btn-icon-transition);
+  }
+
+  &.open::after {
+    color: white;
+    background-image: var(--bs-accordion-btn-active-icon);
+    filter: invert(100%) grayscale(100%);
+    transform: var(--bs-accordion-btn-icon-transform);
+  }
+}
+
+input[type="radio"],
+label {
+  cursor: pointer;
+}
+
+// hide number spinners
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
