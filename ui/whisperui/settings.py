@@ -19,11 +19,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / '..' / 'data'
 DEFAULT_MODEL = "BramVanroy/GEITje-7B-ultra"
 
-try:
-    from .local_settings import *
-except ImportError:
-    print("No local_settings.py file found, using default settings.")
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -33,7 +28,7 @@ SECRET_KEY = 'django-insecure-s81iv^-$=ypdl#5d93#s8qid*^31*n+x^y-n-4sqt6w-8&8n27
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -133,3 +128,10 @@ STATIC_URL = 'static/'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+
+
+try:
+    from .local_settings import *
+except ImportError:
+    print("No local_settings.py file found, using default settings.")

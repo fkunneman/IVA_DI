@@ -40,7 +40,7 @@ def _prepare_agent(agent: InstructAgent):
     instructions_travel = data_path + 'opslag_inclusieve_spraakassistent_project/instructions_ov_stripped.csv'
     instructions_passport = data_path + 'opslag_inclusieve_spraakassistent_project/instructions_paspoort_stripped_v2.csv'
     pat = data_path + 'opslag_inclusieve_spraakassistent_project/patterns_v2.csv'
-    qa_travel = data_path + 'opslag_inclusieve_spraakassistent_project/Vraag_antwoord_ov_v3.csv'
+    qa_travel = data_path + 'opslag_inclusieve_spraakassistent_project/Vraag_antwoord_ov_v5.csv'
     qa_passport = data_path + 'opslag_inclusieve_spraakassistent_project/Vraag_antwoord_paspoort.csv'
     nav = data_path + 'opslag_inclusieve_spraakassistent_project/navigation.csv'
 

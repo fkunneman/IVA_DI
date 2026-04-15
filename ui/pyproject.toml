@@ -1,0 +1,17 @@
+[project]
+name = "spraakassistent"
+version = "0.0.1"
+requires-python = "~=3.13.0"
+dependencies = [
+    "Django>=6.0,<6.1",
+    "transformers>=5.0,<6.0",
+    "datasets",
+    "django-crispy-forms",
+    "crispy-bootstrap5",
+    "langchain",
+    "langchain-community",
+    "langchain-classic",
+    "chromadb",
+    "accelerate",
+    "scipy",
+]
