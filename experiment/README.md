@@ -70,6 +70,14 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+For deployment in a folder as a static file:
+
+```bash
+ng build --base-href=/iva-di/
+```
+
+Copy the contents of the `dist/experiment/browser` folder to the server. Create a subfolder `speak` and place a copy of `index.html` there (or configure the server to rewrite calls to use `index.html`).
+
 ## Running unit tests
 
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
