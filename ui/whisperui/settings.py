@@ -49,18 +49,18 @@ INSTALLED_APPS = [
 
 DEVICE = os.environ.get('DEVICE', 'cpu')
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_METHODS = [
-    "GET",
-    "POST",
-    "OPTIONS",
-]
-CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
-    "x-csrftoken",
-]
-CORS_ALLOW_CREDENTIALS = True
+#CORS_ALLOW_ALL_ORIGINS = True
+#CORS_ALLOW_METHODS = [
+#    "GET",
+#    "POST",
+#    "OPTIONS",
+#]
+#CORS_ALLOW_HEADERS = [
+#    "content-type",
+#    "authorization",
+#    "x-csrftoken",
+#]
+#CORS_ALLOW_CREDENTIALS = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
