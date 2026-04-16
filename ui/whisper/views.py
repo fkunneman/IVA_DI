@@ -31,6 +31,11 @@ def homepage(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def whisper(request: HttpRequest, model_name: str) -> HttpResponse:
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+
     f = request.FILES['file']
 
     from whisper.whisper import transcribe
