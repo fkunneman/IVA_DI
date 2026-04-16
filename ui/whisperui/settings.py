@@ -60,6 +60,7 @@ CORS_ALLOW_HEADERS = [
     "authorization",
     "x-csrftoken",
 ]
+CORS_ALLOW_CREDENTIALS = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
