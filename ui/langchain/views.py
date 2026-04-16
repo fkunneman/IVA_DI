@@ -1,10 +1,11 @@
 import uuid
 
+import torch
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 
-from .agents import agents, create_agent, histories, Message
-from .forms import NewSessionForm, MessageForm
+from .agents import agents, create_agent, histories, Message, discard_agent
+from .forms import NewSessionForm, MessageForm, SessionsForm
 
 
 def langchain_webui(request: HttpRequest) -> HttpResponse:
@@ -15,8 +16,9 @@ def langchain_webui(request: HttpRequest) -> HttpResponse:
     agent_id = request.session.get('agent_id', None)
     agent = agents.get(agent_id)
     if agent is None:
-        agent_id = None  # Session has expired
-        has_expired = True
+        if agent_id:
+            # There was an agent ID in the session but it does not exist anymore or application has restarted
+            has_expired = True
         history = None
     else:
         assert isinstance(agent_id, str)
@@ -50,8 +52,8 @@ def new_session(request: HttpRequest) -> HttpResponse:
     new_session_form = NewSessionForm(request.POST or None)
     if request.method == 'POST' and new_session_form.is_valid():
         # Create a new session
-        agent = create_agent(new_session_form.cleaned_data['model_name'])
         agent_id = str(uuid.uuid4())
+        agent = create_agent(new_session_form.cleaned_data['model_name'], agent_id)
         agents[agent_id] = agent
         # Add first message
         histories[agent_id].append(Message(agent.patterns[0], "agent"))
@@ -59,3 +61,17 @@ def new_session(request: HttpRequest) -> HttpResponse:
         return redirect('langchain_webui')
     else:
         raise Exception("Invalid form")
+
+
+def manage_sessions(request: HttpRequest) -> HttpResponse:
+    cuda_summary = torch.cuda.memory_summary() if torch.cuda.is_available() else "CUDA niet beschikbaar"
+    form = SessionsForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        agent_id = form.cleaned_data['session']
+        discard_agent(agent_id)
+        return redirect('manage_sessions')
+    return render(request, "langchain/manage_sessions.html", {
+        'sessions': agents.keys(),
+        'cuda_summary': cuda_summary,
+        'form': form,
+    })

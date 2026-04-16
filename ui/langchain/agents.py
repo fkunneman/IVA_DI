@@ -6,12 +6,15 @@ from django.conf import settings
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import torch
+import gc
 
 from .instruction_agent import InstructAgent
 
 
 agents: dict[str, InstructAgent] = {}
 histories: dict[str, list["Message"]] = defaultdict(list)
+
+chroma_client = chromadb.Client()
 
 
 class Message:
@@ -23,10 +26,9 @@ class Message:
         self.origin = origin
 
 
-def _prepare_agent(agent: InstructAgent):
-    chroma_client = chromadb.Client()
+def _prepare_agent(agent: InstructAgent, agent_id: str):
     collection = chroma_client.create_collection(
-        name="instruction_db",
+        name=f"instruction_db_{agent_id}",
         configuration={
             "hnsw": {
                 "space": "cosine",
@@ -34,7 +36,6 @@ def _prepare_agent(agent: InstructAgent):
             }
         }
     )
-
     data_path = str(settings.DATA_PATH) + '/'
 
     instructions_travel = data_path + 'opslag_inclusieve_spraakassistent_project/instructions_ov_stripped.csv'
@@ -50,7 +51,7 @@ def _prepare_agent(agent: InstructAgent):
     agent.setup_rag(collection, [['qa', 'travel', qa_travel], ['qa', 'passport', qa_passport], ['nav', nav]])
 
 
-def create_agent(model_name: str) -> InstructAgent:
+def create_agent(model_name: str, agent_id: str) -> InstructAgent:
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
     chatmodel = AutoModelForCausalLM.from_pretrained(model_name, dtype=torch.bfloat16,
                                                      trust_remote_code=True, device_map=settings.DEVICE)
@@ -69,6 +70,14 @@ def create_agent(model_name: str) -> InstructAgent:
     agent.model_name = model_name
     agent.clean_buffer()
     agent.context = 'b'
-    _prepare_agent(agent)
+    _prepare_agent(agent, agent_id)
     return agent
 
+
+def discard_agent(identifier: str):
+    agents.pop(identifier, None)
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+        print(torch.cuda.memory_summary())

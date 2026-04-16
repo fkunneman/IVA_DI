@@ -1,0 +1,28 @@
+{% extends "whisper/base.html" %}
+{% load crispy_forms_tags %}
+
+
+
+{% block title %}
+LangChain – sessies
+{% endblock %}
+
+{% block content %}
+    <h1>LangChain – sessies</h1>
+
+    <div class="bg-body-tertiary p-3 rounded-2 mt-3">
+    <h3>Geheugengebruik</h3>
+    <p>{{ cuda_summary }}</p>
+
+    </div>
+
+<h3>Sessiebeheer</h3>
+    <form method="post">
+        {{ form|crispy }}
+        <input type="submit" class="btn btn-primary" value="Sessie verwijderen">
+        {% csrf_token %}
+    </form>
+
+
+
+{% endblock %}

@@ -15,6 +15,7 @@ LangChain
     <form method="post" action="{% url "new_session" %}">
         {{ new_session_form|crispy }}
         <input type="submit" class="btn btn-primary" value="Nieuwe sessie starten">
+        <a class="ms-2" href="{% url 'manage_sessions' %}">Sessies en geheugengebruik beheren</a>
         {% csrf_token %}
     </form>
     </div>
