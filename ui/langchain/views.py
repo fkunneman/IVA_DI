@@ -47,7 +47,7 @@ def langchain_webui(request: HttpRequest) -> HttpResponse:
         'new_session_form': new_session_form,
         'message_form': message_form,
         'has_expired': has_expired,
-        'out_of_memory': 'error' in request.GET and request.GET['error'] == 'out_of_memory,'
+        'out_of_memory': 'error' in request.GET and request.GET['error'] == 'out_of_memory'
     })
 
 
