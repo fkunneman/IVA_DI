@@ -53,7 +53,7 @@ def _prepare_agent(agent: InstructAgent):
 def create_agent(model_name: str) -> InstructAgent:
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
     chatmodel = AutoModelForCausalLM.from_pretrained(model_name, dtype=torch.bfloat16,
-                                                     trust_remote_code=True, device_map="cpu")
+                                                     trust_remote_code=True, device_map=settings.DEVICE)
     # set pipeline
     pipe = pipeline(
         "text-generation",
