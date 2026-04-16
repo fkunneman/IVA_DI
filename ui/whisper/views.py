@@ -38,5 +38,7 @@ def whisper(request: HttpRequest, model_name: str) -> HttpResponse:
         fp.write(f.read())
         fp.close()
         transcription = transcribe(model_name, fp.name)
-        return HttpResponse(transcription)
+        response = HttpResponse(transcription)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
 
