@@ -12,6 +12,11 @@ LangChain
 
     <div class="bg-body-tertiary p-3 rounded-2 mt-3">
     <h3>Nieuwe sessie</h3>
+        {% if out_of_memory %}
+            <div class="alert alert-danger" role="alert">
+                Er is te veel geheugen in gebruik. Probeer een sessie te verwijderen.
+            </div>
+        {% endif %}
     <form method="post" action="{% url "new_session" %}">
         {{ new_session_form|crispy }}
         <input type="submit" class="btn btn-primary" value="Nieuwe sessie starten">

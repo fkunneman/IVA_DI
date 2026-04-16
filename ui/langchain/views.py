@@ -1,8 +1,10 @@
 import uuid
 
 import torch
+from django import urls
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
+from torch import OutOfMemoryError
 
 from .agents import agents, create_agent, histories, Message, discard_agent
 from .forms import NewSessionForm, MessageForm, SessionsForm
@@ -45,6 +47,7 @@ def langchain_webui(request: HttpRequest) -> HttpResponse:
         'new_session_form': new_session_form,
         'message_form': message_form,
         'has_expired': has_expired,
+        'out_of_memory': 'error' in request.GET and request.GET['error'] == 'out_of_memory,'
     })
 
 
@@ -53,7 +56,10 @@ def new_session(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST' and new_session_form.is_valid():
         # Create a new session
         agent_id = str(uuid.uuid4())
-        agent = create_agent(new_session_form.cleaned_data['model_name'], agent_id)
+        try:
+            agent = create_agent(new_session_form.cleaned_data['model_name'], agent_id)
+        except OutOfMemoryError:
+            return redirect(urls.reverse('langchain_webui') + '?error=out_of_memory')
         agents[agent_id] = agent
         # Add first message
         histories[agent_id].append(Message(agent.patterns[0], "agent"))
