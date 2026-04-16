@@ -1,9 +1,11 @@
+import json
 import uuid
 
 import torch
 from django import urls
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 from torch import OutOfMemoryError
 
 from .agents import agents, create_agent, histories, Message, discard_agent
@@ -81,3 +83,56 @@ def manage_sessions(request: HttpRequest) -> HttpResponse:
         'cuda_summary': cuda_summary,
         'form': form,
     })
+
+
+@csrf_exempt
+def api_new_session(request: HttpRequest, model_name: str) -> HttpResponse:
+    agent_id = str(uuid.uuid4()) + '-API'
+    try:
+        agent = create_agent(model_name, agent_id)
+    except OutOfMemoryError:
+        return HttpResponse(
+            json.dumps({
+                'error': 'out of memory',
+            }),
+            content_type='application/json',
+            status=500
+        )
+    agents[agent_id] = agent
+    histories[agent_id].append(Message(agent.patterns[0], "agent"))
+    request.session['agent_id'] = agent_id
+    print(f"Created new session (API): {agent_id}")
+    return HttpResponse(
+        json.dumps({
+            'agent_id': agent_id,
+            'first_message': agent.patterns[0],
+        }),
+        content_type='application/json',
+    )
+
+
+@csrf_exempt
+def api_message(request: HttpRequest, agent_id: str) -> HttpResponse:
+    try:
+        agent = agents[agent_id]
+    except KeyError:
+        return HttpResponse(
+            json.dumps({
+                'error': 'invalid agent id',
+            }),
+            content_type='application/json',
+            status=400
+        )
+    history = histories[agent_id]
+    message = request.POST['message']
+    print(f"Taking message (API): {message}")
+    history.append(Message(message, "person"))
+    response = agent.chat_with_agent(message)
+    print(f"Response (API): {response}")
+    history.append(Message(response, "agent"))
+    return HttpResponse(
+        json.dumps({
+            'response': response,
+        })
+    )
+
