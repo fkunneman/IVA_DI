@@ -5,7 +5,7 @@ from .agents import agents
 
 
 class NewSessionForm(forms.Form):
-    model_name = forms.CharField(label='Naam model', initial=settings.DEFAULT_MODEL)
+    model_name = forms.CharField(label='Naam model', initial=settings.DEFAULT_MODEL, disabled=True)
 
 
 class MessageForm(forms.Form):
