@@ -16,6 +16,8 @@ histories: dict[str, list["Message"]] = defaultdict(list)
 
 chroma_client = chromadb.Client()
 
+chatmodel = None
+
 
 class Message:
     message: str
@@ -54,8 +56,10 @@ def _prepare_agent(agent: InstructAgent, agent_id: str):
 
 def create_agent(model_name: str, agent_id: str) -> InstructAgent:
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-    chatmodel = AutoModelForCausalLM.from_pretrained(model_name, dtype=torch.bfloat16,
-                                                     trust_remote_code=True, device_map=settings.DEVICE)
+    global chatmodel
+    if chatmodel is None:
+        chatmodel = AutoModelForCausalLM.from_pretrained(model_name, dtype=torch.bfloat16,
+                                                         trust_remote_code=True, device_map=settings.DEVICE)
     # set pipeline
     pipe = pipeline(
         "text-generation",
