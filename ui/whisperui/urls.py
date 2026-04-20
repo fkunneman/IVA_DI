@@ -23,4 +23,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('whisper.urls')),
     path('', include('langchain.urls')),
-] + static('media/', document_root=settings.LOGGING_PATH)
+] + static('logs/', document_root=settings.LOGGING_PATH)
