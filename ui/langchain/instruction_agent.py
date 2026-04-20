@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_community.document_loaders import CSVLoader
 from langchain_community.vectorstores import Chroma
@@ -8,9 +10,11 @@ from langchain_community.vectorstores import Chroma
 import chromadb
 from chromadb.api.types import EmbeddingFunction, Documents, Embeddings
 from uuid import uuid4
+from fuzzywuzzy import fuzz
 import time
-import numpy
-from scipy.sparse import csr_matrix
+import datetime
+import csv
+import os
 
 
 class InstructAgent:
@@ -31,15 +35,17 @@ class InstructAgent:
         self.rag = None
         self.memory = None
         self.last = None
-        # self.system_prompt = self.set_system_prompt()
+        self.logfile = None
 
     ###############################################################################################
     ### Dialog functions ##########################################################################
     ###############################################################################################
 
     def chat(self):
+        self.set_logger()
         self.clean_buffer()
         self.context = 'b'
+        self.domain = None
         print(self.patterns[0])
         while True:
             user_input = input("You: ")
@@ -55,7 +61,7 @@ class InstructAgent:
                 """  
                 Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
             De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
-            Maak korte zinnen. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. Formuleer niet uit jezelf een instructie. 
+            Maak korte zinnen. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. Formuleer niet uit jezelf een instructie en gebruik geen emojis. 
                 """
             )
             interface = (
@@ -85,7 +91,7 @@ class InstructAgent:
                 """  
                 Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
             De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
-            Maak korte zinnen. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. Formuleer niet uit jezelf een instructie.
+            Maak korte zinnen. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Formuleer strikt een reactie op de gebruiker. Formuleer niet uit jezelf een instructie en gebruik geen emojis.
                 """
             )
             interface = (
@@ -165,7 +171,9 @@ class InstructAgent:
         # global current_instruction_index, system_prompt # Ensure system_prompt is accessible
         processed_input = user_input.lower()
         chat_history_messages = self.memory.load_memory_variables({})['chat_history']
+        log = [processed_input]
         prompt = False
+        agent_response = ""
         if self.domain == None:
             retrieved = self.rag.query(query_texts=processed_input, n_results=3, where={
                 '$and': [{'type': 'nav'}, {'step_context': {'$in': ['all', self.context]}}]})
@@ -174,10 +182,13 @@ class InstructAgent:
                 '$and': [{'type': {'$in': ['nav', self.domain]}},
                          {'step_context': {'$in': ['all', self.context, '']}}]})
         match, distance, cat, do = self.parse_retrieved(retrieved)
-        print('MATCH', match, ', DISTANCE', distance, ', CAT', cat, ', DO', do, 'CONTEXT', self.context, 'INDEX',
-              self.instruction_index)
+        string_match = fuzz.ratio(processed_input, match[0])
+        info = [', '.join(match), round(distance, 2), string_match, self.domain, self.context, cat, do,
+                self.instruction_index]
+        log.extend([str(x) for x in info])
         response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input, match,
-                                                                                            distance, cat, do)
+                                                                                            string_match, distance, cat,
+                                                                                            do)
         if prompt:
             # print('dynamic system prompt',dynamic_system_prompt_with_context)
             start_time = time.perf_counter()
@@ -192,7 +203,7 @@ class InstructAgent:
             agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'], max_tokens=250)
             response_content = agent_response.split('Human:')[0]  # The LLM's generated text
             if len(response_content) > 250:
-                response_content = '.'.join(response_content.split('.')[:-1])
+                response_content = '.'.join(response_content.split('.')[:-1]).split('\n')[0]
             elapsed_time = time.perf_counter() - start_time
             print('Prompt took', elapsed_time)
         # Update the ConversationBufferMemory with the interaction
@@ -201,9 +212,11 @@ class InstructAgent:
             {"output": response_content}
         )
         self.last = [processed_input, match, distance, cat, do]
+        log.extend([dynamic_system_prompt_with_context, agent_response, response_content])
+        self.log(log)
         return response_content
 
-    def select_response(self, processed_input, match, distance, cat, do):
+    def select_response(self, processed_input, match, fuzzy_match, distance, cat, do):
         # print('sel_res',match,distance,cat,do)
         prompt = False
         # Initialize response content
@@ -220,88 +233,101 @@ class InstructAgent:
                 dynamic_system_prompt_with_context = (
                     f"""
                 {role}
-                'Formuleer een reactie op de uiting van de gebruiker. De laatste instructie die je gegeven hebt is: '{self.get_instruction()}'
-                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen.'
                 {interface}
+                Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
+                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen.'
                 """
                 )
         elif distance >= 0.50 and distance < 0.70:
             response_content = f"""Bedoelde je "{match[0]}"?"""
             self.prev_context = self.context
             self.context = 'd'
-        elif cat == 'nav':
-            if do == 'clarify':
-                if self.context == 'b':
-                    response_content = f"Er zijn twee dingen waar ik je bij kan helpen: een reis plannen op 9292.nl of een afspraak inplannen voor een paspoort bij de gemeente Amsterdam. Ik hoor graag van je welke van de twee instructies je wil horen."
+        else:
+            if len(processed_input.split()) <= 3 and fuzzy_match < 50:
+                prompt = True
+                role, interface = self.get_system_prompt()
+                history = self.memory.load_memory_variables({})['chat_history']
+                dynamic_system_prompt_with_context = (
+                    f"""
+                {role}
+                {interface}
+                Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
+                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen.'
+                """
+                )
+            elif cat == 'nav':
+                if do == 'clarify':
+                    if self.context == 'b':
+                        response_content = f"Er zijn twee dingen waar ik je bij kan helpen: een reis plannen op 9292.nl of een afspraak inplannen voor een paspoort bij de gemeente Amsterdam. Ik hoor graag van je welke van de twee instructies je wil horen."
+                    else:
+                        prompt = True
+                        role, interface = self.get_system_prompt()
+                        dynamic_system_prompt_with_context = (
+                            f"""
+                        {role}
+                        \n{interface}
+                        \nDe huidige instructie is: '{self.get_instruction()}'
+                        \nDe gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen. Formuleer geen nieuwe instructiestap.'  
+                        """
+                        )
+                elif do == 'Done':
+                    if self.context == 'e':
+                        response_content = 'Tot ziens!'
+                    else:
+                        response_content = f"Je zegt '{processed_input}'. Weet je zeker dat je wil stoppen met het gesprek?"
+                        self.context = 'q'
+                elif do == 'Confirm':
+                    if self.context == 'q':
+                        response_content = 'Tot ziens!'
+                    elif self.context in ['p', 't']:
+                        if self.context == 'p':
+                            self.domain = 'passport'
+                            self.instruction_index = 0
+                            response_start = self.navigate('passport', processed_input)
+                        elif self.context == 't':
+                            self.domain = 'travel'
+                            self.instruction_index = 0
+                            response_start = self.navigate('travel', processed_input)
+                        instruction = self.get_instruction()
+                        response_content = f"{response_content}{response_start}{instruction}"
+                        # End of conversation pattern
+                        if self.instruction_index == (len(self.active_instructions) - 1) and self.context != 'e':
+                            response_content = f"{response_content} {self.patterns[1]}"
+                            self.context = 'e'
+                    elif self.context == 'd':
+                        self.context = self.prev_context
+                        response_content, prompt, dynamic_system_prompt_with_context = self.select_response(
+                            self.last[0], self.last[1], 0.1, fuzzy_match, self.last[3], self.last[4])
+                    else:
+                        if self.context == 'e':
+                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Stel een vraag over de huidige instructie, vraag om een nieuwe instructie te geven of beëindig het gesprek."
+                        else:
+                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
+                elif do == 'Reject':
+                    if self.context == 'q' or self.context == 'p' or self.context == 't':
+                        response_content = f"Okay! De huidige instructie is: '{self.get_instruction()}' Laat het me weten als je hier vragen over hebt of naar de volgende instructie wil."
+                        try:
+                            self.context = str(self.instruction_index + 1)
+                        except:
+                            self.context = self.context
+                    elif self.context == 'd':
+                        response_content = f"Okay! Zou je het dan nog een keer willen zeggen, in iets andere woorden?"
+                        self.context = self.prev_context
+                    else:
+                        response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
                 else:
-                    prompt = True
-                    role, interface = self.get_system_prompt()
-                    dynamic_system_prompt_with_context = (
-                        f"""
-                    {role}
-                    \nDe huidige instructie is: '{self.get_instruction()}'
-                    \nDe gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen. Formuleer gee nieuwe instructiestap.'  
-                    {interface}
-                    """
-                    )
-            elif do == 'Done':
-                if self.context == 'e':
-                    response_content = 'Tot ziens!'
-                else:
-                    response_content = f"Je zegt '{processed_input}'. Weet je zeker dat je wil stoppen met het gesprek?"
-                    self.context = 'q'
-            elif do == 'Confirm':
-                if self.context == 'q':
-                    response_content = 'Tot ziens!'
-                elif self.context in ['p', 't']:
-                    if self.context == 'p':
-                        self.domain = 'passport'
-                        self.instruction_index = 0
-                        response_start = self.navigate('passport', processed_input)
-                    elif self.context == 't':
-                        self.domain = 'travel'
-                        self.instruction_index = 0
-                        response_start = self.navigate('travel', processed_input)
-                    instruction = self.get_instruction()
-                    response_content = f"{response_content}{response_start}{instruction}"
+                    response_start = self.navigate(do, processed_input)
+                    if not self.context in ['t', 'p']:
+                        instruction = self.get_instruction()
+                        response_content = f"{response_content}{response_start}{instruction}"
+                    else:
+                        response_content = response_start
                     # End of conversation pattern
                     if self.instruction_index == (len(self.active_instructions) - 1) and self.context != 'e':
                         response_content = f"{response_content} {self.patterns[1]}"
                         self.context = 'e'
-                elif self.context == 'd':
-                    self.context = self.prev_context
-                    response_content, prompt, dynamic_system_prompt_with_context = self.select_response(self.last[0],
-                                                                                                        self.last[1],
-                                                                                                        0.1,
-                                                                                                        self.last[3],
-                                                                                                        self.last[4])
-                else:
-                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
-            elif do == 'Reject':
-                if self.context == 'q' or self.context == 'p' or self.context == 't':
-                    response_content = f"Okay! De huidige instructie is: '{self.get_instruction()}' Laat het me weten als je hier vragen over hebt of naar de volgende instructie wil."
-                    try:
-                        self.context = str(self.instruction_index + 1)
-                    except:
-                        self.context = self.context
-                elif self.context == 'd':
-                    response_content = f"Okay! Zou je het dan nog een keer willen zeggen, in iets andere woorden?"
-                    self.context = self.prev_context
-                else:
-                    response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
-            else:
-                response_start = self.navigate(do, processed_input)
-                if not self.context in ['t', 'p']:
-                    instruction = self.get_instruction()
-                    response_content = f"{response_content}{response_start}{instruction}"
-                else:
-                    response_content = response_start
-                # End of conversation pattern
-                if self.instruction_index == (len(self.active_instructions) - 1) and self.context != 'e':
-                    response_content = f"{response_content} {self.patterns[1]}"
-                    self.context = 'e'
-        elif cat == self.domain:
-            response_content = do
+            elif cat == self.domain:
+                response_content = do
         return response_content, prompt, dynamic_system_prompt_with_context
 
     def navigate(self, do, inp):
@@ -395,6 +421,26 @@ class InstructAgent:
 
         # Set the current instruction index to None
         self.instruction_index = 0
+
+    def set_logger(self, logging_path: str = None):
+        dt = datetime.datetime.now().__str__().split('.')[0]
+        current_path = os.path.abspath('')
+        if not logging_path:
+            logging_path = '/'.join(current_path.split('/')[:-1]) + '/data/logs/'
+        elif not logging_path.endswith('/'):
+            logging_path += '/'
+        Path(logging_path).mkdir(parents=True, exist_ok=True)
+        self.logfile = logging_path + dt + '_conversation_log.csv'
+        with open(self.logfile, 'w') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=';')
+            csv_writer.writerow(
+                ['User utterance', 'Top 3 matches', 'Distance', 'Fuzzy distance', 'Domain', 'Context', 'RAG collection',
+                 'Action', 'Instruction step', 'System prompt', 'Agent response', 'Cleaned agent response'])
+
+    def log(self, l):
+        with open(self.logfile, 'a') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=';')
+            csv_writer.writerow(l)
 
     ###############################################################################################
     ### Preparation functions #######################################################################

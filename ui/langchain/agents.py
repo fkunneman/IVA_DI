@@ -45,6 +45,7 @@ def _prepare_agent(agent: InstructAgent, agent_id: str):
     qa_passport = data_path + 'opslag_inclusieve_spraakassistent_project/Vraag_antwoord_paspoort.csv'
     nav = data_path + 'opslag_inclusieve_spraakassistent_project/navigation.csv'
 
+    agent.set_logger(str(settings.LOGGING_PATH))
     agent.prepare_instructions(instructions_travel, 'travel')
     agent.prepare_instructions(instructions_passport, 'passport')
     agent.prepare_patterns(pat)

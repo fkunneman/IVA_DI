@@ -1,5 +1,6 @@
 import json
 import uuid
+from pathlib import Path
 
 import torch
 from django import urls
@@ -15,6 +16,7 @@ from .forms import NewSessionForm, MessageForm, SessionsForm
 def langchain_webui(request: HttpRequest) -> HttpResponse:
     has_expired = False
     new_session_form = NewSessionForm(None)
+    log_url = None
 
     # Use existing session if available, otherwise "no session"
     agent_id = request.session.get('agent_id', None)
@@ -27,6 +29,8 @@ def langchain_webui(request: HttpRequest) -> HttpResponse:
     else:
         assert isinstance(agent_id, str)
         history = histories[agent_id]
+        log_filename = Path(agent.logfile).name
+        log_url = '/logs/' + log_filename
 
     if request.method == 'POST' and agent is not None:
         message_form = MessageForm(request.POST)
@@ -49,6 +53,7 @@ def langchain_webui(request: HttpRequest) -> HttpResponse:
         'new_session_form': new_session_form,
         'message_form': message_form,
         'has_expired': has_expired,
+        'log_url': log_url,
         'out_of_memory': 'error' in request.GET and request.GET['error'] == 'out_of_memory'
     })
 

@@ -15,6 +15,8 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+LOGGING_PATH = BASE_DIR / 'logs'
+
 # May be overridden in local_settings.py
 DATA_PATH = BASE_DIR / '..' / 'data'
 DEFAULT_MODEL = "BramVanroy/GEITje-7B-ultra"

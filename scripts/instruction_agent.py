@@ -1,3 +1,4 @@
+from pathlib import Path
 
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_community.document_loaders import CSVLoader
@@ -414,10 +415,14 @@ class InstructAgent:
         # Set the current instruction index to None
         self.instruction_index = 0
 
-    def set_logger(self):
+    def set_logger(self, logging_path: str = None):
         dt = datetime.datetime.now().__str__().split('.')[0]
         current_path = os.path.abspath('')
-        logging_path = '/'.join(current_path.split('/')[:-1]) + '/data/logs/'
+        if not logging_path:
+            logging_path = '/'.join(current_path.split('/')[:-1]) + '/data/logs/'
+        elif not logging_path.endswith('/'):
+            logging_path += '/'
+        Path(logging_path).mkdir(parents=True, exist_ok=True)
         self.logfile = logging_path + dt + '_conversation_log.csv'
         with open(self.logfile, 'w') as csvfile:
             csv_writer = csv.writer(csvfile, delimiter=';')

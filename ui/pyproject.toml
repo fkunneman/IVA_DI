@@ -15,4 +15,5 @@ dependencies = [
     "accelerate",
     "scipy",
     "django-cors-headers>=4.9.0",
+    "fuzzywuzzy",
 ]
