@@ -10,6 +10,10 @@
   'text-bg-success': state() == 'speaking',
 }">
     @switch (state()) {
+    @case ('preflight') {
+    <button class="btn btn-lg btn-primary fs-1" (click)="start()">Start</button>
+    }
+
     @case ('ready') {
     <button class="btn btn-lg btn-primary fs-1" (click)="record()">Opnemen</button>
     }
@@ -23,12 +27,30 @@
     }
 
     @case ('waiting') {
+    @if (speakerText().length) {
+    <p>
+      @for ( part of speakerText(); track part) {
+      <span class="text-bg-light text-dark mb-3">
+        {{part}}
+      </span>&nbsp;
+      }
+    </p>
+    }
     <div class="spinner-border" style="width: 6rem; height: 6rem;" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
     }
 
     @case ('speaking') {
+    @if (responseText().length) {
+    <p>
+      @for (part of responseText(); track part) {
+      <span class="text-bg-light text-dark mb-3">
+        {{part}}
+      </span>&nbsp;
+      }
+    </p>
+    }
     <div class="spinner-grow text-light" style="width: 6rem; height: 6rem;" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
