@@ -248,10 +248,8 @@ class InstructAgent:
                 f"""
                 {role}
                 {interface}
-                {interface}
                 Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
-                Als de uitspraak van de gebruiker niet past in de context, geef dan aan datGeef geen nieuwe instructie en genereer geen dialoog. 
-                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden raag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gerhaal de laatste instructie of vraag de gebruiruiker om 'er om 'vorige' of 'orige' of 'volgende' te zeggen.'
+                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'
                 """
                 )
         elif distance >= 0.50 and distance < 0.70:
@@ -347,6 +345,17 @@ class InstructAgent:
                             self.context = self.prev_context
                         else:
                             response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."  
+                    elif (do == 'passport' and self.instruction_index > 0) or (do == 'passport' and self.instruction_index > 0):
+                        prompt = True
+                        role, interface = self.get_system_prompt()
+                        dynamic_system_prompt_with_context = (
+                            f"""
+                            {role}
+                            {interface}
+                            Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
+                            Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'
+                            """
+                        )    
                     else:
                         response_start = self.navigate(do,processed_input)
                         if not self.context in ['t','p']:
@@ -365,33 +374,15 @@ class InstructAgent:
     def navigate(self,do,inp):
         # perform the fitting navigation and add the fitting response
         if do == 'travel': # start ov instructions
-            if self.domain == 'passport':
-                response_start = f"Ik verstond '{inp}'. We doorlopen nu andere instructies. Weet je zeker dat je liever de instructies voor het plannen van een reis met het OV wil horen?"
-                self.context = 't'
-                return response_start
-            else: # domain = travel
-                if self.instruction_index > 0:
-                    response_start = f"Klopt het dat je vraagt om de instructies voor het plannen van een reis met het ov? We zijn nu bij stap '{self.context}'. Wil je naar het begin van de instructies?"
-                    self.context = 't'
-                else:
-                    self.active_instructions = self.instructions[do]
-                    self.domain = 'travel'
-                    response_start = 'Ik ga je instrueren om een reis met het ov te plannen op negen twee negen twee punt NL. Stap 1: '
-                    self.context = '1'
+            self.active_instructions = self.instructions[do]
+            self.domain = 'travel'
+            response_start = 'Ik ga je instrueren om een reis met het ov te plannen op negen twee negen twee punt NL. Stap 1: '
+            self.context = '1'
         elif do == 'passport': # start passport instructions
-            if self.domain == 'travel':
-                response_start = f"Ik verstond '{inp}'. We doorlopen nu andere instructies. Weet je zeker dat je liever de instructies voor het aanvragen van een paspoort wil horen?"
-                self.context = 'p'
-                return response_start
-            else:
-                if self.instruction_index > 0:
-                    response_start = f"Klopt het dat je vraagt om de instructies voor het aanvragen van een paspoort? We zijn nu bij stap '{self.context}'. Wil je naar het begin van de instructies?"
-                    self.context = 'p'
-                else:
-                    self.active_instructions = self.instructions[do]
-                    self.domain = 'passport'
-                    response_start = 'Ik ga je instrueren om een paspoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
-                    self.context = '1'
+            self.active_instructions = self.instructions[do]
+            self.domain = 'passport'
+            response_start = 'Ik ga je instrueren om een paspoort aan te vragen op de website van de gemeente Amsterdam. Stap 1: '
+            self.context = '1'
         else:
             if do == 'next step': # move to next step
                 if self.domain != None:
