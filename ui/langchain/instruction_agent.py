@@ -353,7 +353,7 @@ class InstructAgent:
         if do == 'travel': # start ov instructions
             self.active_instructions = self.instructions[do]
             self.domain = 'travel'
-            response_start = 'Ik ga je instrueren om een reis met het ov te plannen op negen twee negen twee punt NL. Stap 1: '
+            response_start = 'Ik ga je instrueren om een reis met het ov te plannen op negen twee negen twee. Stap 1: '
             self.context = '1'
         elif do == 'passport': # start passport instructions
             self.active_instructions = self.instructions[do]
