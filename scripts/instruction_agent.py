@@ -10,11 +10,11 @@ from langchain_community.vectorstores import Chroma
 import chromadb
 from chromadb.api.types import EmbeddingFunction, Documents, Embeddings
 from uuid import uuid4
-from fuzzfrom fuzzywuzzwuzzy import fuzz
+from fuzzywuzzy import fuzz
 import time
 import datetime
 import csv
-import os import fuzz
+import os
 import time
 import datetime
 import csv
@@ -37,14 +37,7 @@ class InstructAgent:
         self.rag = None
         self.memory = None
         self.last = None
-        self.logfileself.logfile = None
-
-    ###############################################################################################
-    ### Dialog functions ##########################################################################
-    ###############################################################################################
-
-    def chat(self):
-        self.set_loggerNone
+        self.logfile = None
 
     ###############################################################################################
     ### Dialog functions ##########################################################################
@@ -55,7 +48,6 @@ class InstructAgent:
         self.clean_buffer()
         self.context = 'b'
         self.domain = None
-        self.domain = None
         print(self.patterns[0])
         while True:
             user_input = input("You: ")
@@ -63,7 +55,6 @@ class InstructAgent:
             print(f"Agent: {response}")
             if response == "Tot ziens!":
                 break
-
 
     def get_system_prompt(self):
         # custom system prompts per domain to reduce processing time
@@ -182,22 +173,18 @@ class InstructAgent:
         #global current_instruction_index, system_prompt # Ensure system_prompt is accessible
         processed_input = user_input.lower()
         chat_history_messages = self.memory.load_memory_variables({})['chat_history']
-        loglog = [processed_input]
-        prompt = [processed_input]
+        log = [processed_input]
         prompt = False
-        agent_response = ""
         agent_response = ""
         if self.domain == None:
             retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': 'nav'}, {'step_context': {'$in': ['all',self.context]}}]})
         else:
             retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav',self.domain]}}, {'step_context': {'$in': ['all',self.context,'']}}]})
         match,distance,cat,do = self.parse_retrieved(retrieved)
-        string_match = fuzz.ratiostring_match = fuzz.ratio(processed_inputprocessed_input,match[0])
-        info = [', '.join(match),round(distance,2),string_match[0])
-        info = [', '.join(match),round(distance,2),string_match,self.domainself.domain,self.contextself.context,catcat,dodo,self.instruction_indself.instruction_index]
-        log.extend([str(]
-        log.extend([str(x) for x in info]) for x in info])
-        response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,match,string_match,string_match,distance,cat,do)
+        string_match = fuzz.ratio(processed_input,match[0])
+        info = [', '.join(match),round(distance,2),string_match,self.domain,self.context,cat,do,self.instruction_index]
+        log.extend([str(x) for x in info])
+        response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,match,string_match,distance,cat,do)
         if prompt:
             #print('dynamic system prompt',dynamic_system_prompt_with_context)
             start_time = time.perf_counter()
@@ -221,16 +208,11 @@ class InstructAgent:
             {"output": response_content}
         )
         self.last = [processed_input,match,distance,cat,do]
-        log.extendlog.extend([dynamic_system_prompt_with_context[dynamic_system_prompt_with_context, agent_response agent_response, response_content])
-        self.log(log)
-        return response_content
-
-    def select_response(self,processed_input,match,fuzzy_ response_content])
+        log.extend([dynamic_system_prompt_with_context, agent_response, response_content])
         self.log(log)
         return response_content
 
     def select_response(self,processed_input,match,fuzzy_match,distance,cat,do):
-        #print('sel_res',match,distance,cat,do)
         prompt = False
         # Initialize response content
         response_content = ""
@@ -269,19 +251,19 @@ class InstructAgent:
                 """
                 )
             else:
-            if len(processed_input.split()) <= 3 and fuzzy_match < 50:
-                prompt = True
-                role, interface = self.get_system_prompt()
-                history = self.memory.load_memory_variables({})['chat_history']
-                dynamic_system_prompt_with_context = (
-                f"""
-                {role}
-                {interface}
-                Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
-                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen.'
-                """
-                )
-            elif cat == 'nav':
+                if len(processed_input.split()) <= 3 and fuzzy_match < 50:
+                    prompt = True
+                    role, interface = self.get_system_prompt()
+                    history = self.memory.load_memory_variables({})['chat_history']
+                    dynamic_system_prompt_with_context = (
+                    f"""
+                    {role}
+                    {interface}
+                    Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
+                    Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen.'
+                    """
+                    )
+                elif cat == 'nav':
                     if do == 'clarify':
                         if self.context == 'b':
                             response_content = f"Er zijn twee dingen waar ik je bij kan helpen: een reis plannen op 9292.nl of een afspraak inplannen voor een paspoort bij de gemeente Amsterdam. Ik hoor graag van je welke van de twee instructies je wil horen." 
@@ -291,10 +273,9 @@ class InstructAgent:
                             dynamic_system_prompt_with_context = (
                             f"""
                             {role}
-                        \n{interface}
-                            \n{interface}
-                        \nDe huidige instructie is: '{self.get_instruction()}'
-                            \nDe gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen. Formuleer geenn nieuwe instructiestap.'  
+                            {interface}
+                            De huidige instructie is: '{self.get_instruction()}'
+                            De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen. Formuleer geenn nieuwe instructiestap.'  
                         """
                             )
                     elif do == 'Done':
@@ -325,13 +306,10 @@ class InstructAgent:
                             self.context = self.prev_context
                             response_content, prompt, dynamic_system_prompt_with_context = self.select_response(self.last[0],self.last[1],0.1,fuzzy_match,fuzzy_match,self.last[3],self.last[4])
                         else:
-                        if self.context == 'e':
-                                if self.context == 'e':
-                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Stel een vraag over de huidige instructie, vraag om een nieuwe instructie te geven of beëindig het gesprek."  
-                        else:
-                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Stel een vraag over de huidige instructie, vraag om een nieuwe instructie te geven of beëindig het gesprek."  
-                        else:
-                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."  
+                            if self.context == 'e':
+                                response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Stel een vraag over de huidige instructie, vraag om een nieuwe instructie te geven of beëindig het gesprek."  
+                            else:
+                                response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Stel een vraag over de huidige instructie, vraag om een nieuwe instructie te geven of beëindig het gesprek."  
                     elif do == 'Reject':
                         if self.context == 'q' or self.context == 'p' or self.context == 't':
                             response_content = f"Okay! De huidige instructie is: '{self.get_instruction()}' Laat het me weten als je hier vragen over hebt of naar de volgende instructie wil."
