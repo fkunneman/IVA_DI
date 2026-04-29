@@ -78,8 +78,8 @@ class InstructAgent:
                 - 'nu' (standaard instelling)
                 - 'vertrek'
                 - 'aankomst'
-                - 'datum' (date picker)
-                - 'tijd' (time picker)
+                - 'datum' (datumkiezer)
+                - 'tijd' (dropdown)
                 - 'plan je reis'
     
                 Gedrag interface:
@@ -152,9 +152,9 @@ class InstructAgent:
                 Knoppen:
                 - '+'
                 - '-'
-                - Date picker (datum afspraak)
+                - 'Datum afspraak' (Datumkiezer)
                 - 'Beschikbare tijden'
-                - Date picker (geboortedatum)
+                - 'geboortedatum' (Datumkiezer)
                 - 'Land code' (dropdown)
                 - 'Maak afspraak'
                 - 'Opnieuw beginnen'
@@ -163,7 +163,7 @@ class InstructAgent:
     
                 - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
                 - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
-                - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de date picker
+                - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
                 - De user is niet verplicht om een telefoonnummer in te vullen
                 """
             )
