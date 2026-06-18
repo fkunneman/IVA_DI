@@ -12,6 +12,7 @@ pipelines = {}
 def transcribe(model_name: str, audio_file: Path | str, follow_override_setting=True) -> str:
     if follow_override_setting and hasattr(settings, "OVERRIDE_MODEL"):
         model_name = settings.OVERRIDE_MODEL
+    print(f"Transcribing using model {model_name}...")
 
     if model_name == "murmel" and hasattr(settings, "MURMEL_API_KEY"):
         # Instead of using the local model, use the Murmel API
@@ -26,5 +27,6 @@ def transcribe(model_name: str, audio_file: Path | str, follow_override_setting=
         pipeline_ = pipelines[model_name]
 
     result = pipeline_(str(audio_file))
+    print(result)
     return result["text"]
 
