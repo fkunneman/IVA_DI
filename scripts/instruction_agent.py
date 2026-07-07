@@ -273,7 +273,7 @@ class InstructAgent:
                         else:
                             response_content = f"Je zegt '{processed_input}'. Weet je zeker dat je wil stoppen met het gesprek?"
                             self.context = 'q'
-                    elif do == 'Confirm' or do == 'start':
+                    elif do == 'start':
                         if self.context == 'b':
                             self.instruction_index = 0
                             response_start = self.navigate('start')
