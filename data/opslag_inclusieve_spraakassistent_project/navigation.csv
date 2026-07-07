@@ -1,14 +1,8 @@
 ﻿Input;Action
-Reis;travel
-OV;travel
-Openbaar vervoer;travel
-Ik zou graag de reis instructies willen;travel
-Ik wil toch een ov reis plannen;travel
-Ik wil toch een paspoort aanvragen;passport
-Paspoort;passport
-Gemeente;passport
-Idee;passport
-Ik zou graag instructies voor het paspoort hebben;passport
+Nu ben ik er klaar voor;start
+Nu wel;start
+Ik kan beginnen;start
+Ik wil beginnen;start
 Volgende;next step
 Gedaan;next step
 Next;next step
@@ -33,6 +27,8 @@ Graag;Confirm
 Yes;Confirm
 Jawel;Confirm
 Okee;Confirm
+Nu wel;Confirm
+Jawel;Confirm
 Nee;Reject
 Nope;Reject
 No;Reject

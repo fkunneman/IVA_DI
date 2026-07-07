@@ -1,3 +1,4 @@
 ﻿pattern;Utterance
-b;Hallo! Ik kan je helpen met 'een reis plannen' of 'een afspraak maken voor een paspoort'. Je kan 'vorige' zeggen als je een stap terug wilt doen, 'volgende' als je naar de volgende stap wilt. Zeg 'herhaal' als je wilt dat ik een stap herhaal. Je kan altijd een vraag stellen. Zeg nu 'reis' of 'paspoort'.
+b;Hallo! Ik ga je helpen met het plannen van een reis. Ik geef je zo stap voor stap instructies. Stel gerust een vraag als je er niet uit komt bij een stap. Ben je klaar om te beginnen?  
+b;Hallo! Ik ga je helpen met het maken van een afspraak voor een paspoort. Je kan altijd een vraag stellen. Ben je er klaar voor?
 e;En daarmee heb je de taak volbracht! Heb je nog vragen? Stel ze gerust. Geen vragen? Zeg dan 'klaar'
