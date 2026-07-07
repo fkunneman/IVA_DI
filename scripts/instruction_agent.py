@@ -37,6 +37,7 @@ class InstructAgent:
         self.memory = None
         self.last = None
         self.logfile = None
+        self.quit = False
 
     ###############################################################################################
     ### Dialog functions ##########################################################################
@@ -177,12 +178,13 @@ class InstructAgent:
         log = [processed_input]
         prompt = False
         agent_response = ""
-        retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav','instruct']}}, {'step_context': {'$in': ['all',str(self.context),'']}}]})
+        #retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav','instruct']}}, {'step_context': {'$in': ['all',str(self.context),'']}}]})
+        retrieved = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav','instruct']}})
         matches,do = self.parse_retrieved(retrieved)
         string_match = fuzz.ratio(processed_input,matches[0][0])
         info = [', '.join([m[0] for m in matches]),round(matches[0][1],2),string_match,self.domain,self.context,matches[0][2]['type'],do,self.instruction_index]
         log.extend([str(x) for x in info])
-        print(retrieved,self.context,string_match)
+        #print(retrieved,self.context,string_match)
         response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,matches,string_match,do)
         if prompt:
             #print('dynamic system prompt',dynamic_system_prompt_with_context)
@@ -220,7 +222,7 @@ class InstructAgent:
         dynamic_system_prompt_with_context = ""
         if matches[0][1] >= 0.30: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
             prompt = True
-            examples = [x[0] for x in matches if x[1] < 0.65]
+            examples = [x[0] for x in matches[:5] if x[1] < 0.65]
             role, interface = self.get_system_prompt()
             dynamic_system_prompt_with_context = (
             f"""
@@ -240,7 +242,7 @@ class InstructAgent:
             if len(processed_input.split()) <= 3 and fuzzy_match < 50:
                 prompt = True
                 role, interface = self.get_system_prompt()
-                examples = [x[0] for x in matches if x[1] < 0.75]
+                examples = [x[0] for x in matches[:5] if x[1] < 0.75]
                 history = self.memory.load_memory_variables({})['chat_history']
                 dynamic_system_prompt_with_context = (
                 f"""
@@ -253,7 +255,18 @@ class InstructAgent:
                 """
                 )
             else:
-                if matches[0][2]['type'] == 'instruct':
+                types = list(set([x[2]['type'] for x in matches[:5]]))
+                if len(types) == 1 and types[0] == 'instruct': # instruction question
+                    contexts = list(set([x[2]['step_context'] for x in matches[:5]]))
+                    if len(contexts) >= 3: #contextualized question
+                        select = [x for x in matches if str(x[2]['step_context']) == str(self.context)]
+                        if len(select) > 0:
+                            response_content = select[0][2]['answer']
+                        else:
+                            response_content = matches[0][2]['answer']
+                    else:
+                        response_content = matches[0][2]['answer']
+                elif matches[0][2]['type'] == 'instruct':
                     response_content = matches[0][2]['answer']
                 elif matches[0][2]['type'] == 'nav':
                     if do == 'clarify':
@@ -271,22 +284,31 @@ class InstructAgent:
                         if self.context == 'e':
                             response_content = 'Tot ziens!'
                         else:
-                            response_content = f"Je zegt '{processed_input}'. Weet je zeker dat je wil stoppen met het gesprek?"
-                            self.context = 'q'
+                            response_content = f"Je zegt '{processed_input}'. Weet je zeker dat je wil stoppen met het gesprek?"                            
+                            self.quit = True
                     elif do == 'start':
                         if self.context == 'b':
                             self.instruction_index = 0
                             response_start = self.navigate('start')
                             instruction = self.get_instruction()
                             response_content = f"{response_content}{response_start}{instruction}"
-                        if self.context == 'q':
+                    elif do == 'Confirm':
+                        if self.quit:
                             response_content = 'Tot ziens!'
+                        else:
+                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
                     elif do == 'Reject':
-                        if self.context == 'd':
+                        if self.quit:
+                            self.quit = False
+                            if self.context == 'b':
+                                response_content = f"Goed! Zeg het maar als je wil beginnen"
+                            else:
+                                response_content = f"Okay! Dan gaan we lekker door."
+                        elif self.context == 'd':
                             response_content = f"Okay! Zou je het dan nog een keer willen zeggen, in iets andere woorden?"
                             self.context = self.prev_context
                         else:
-                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."  
+                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
                     else:
                         response_start = self.navigate(do)
                         instruction = self.get_instruction()
@@ -343,7 +365,7 @@ class InstructAgent:
             return self.instructions[self.instruction_index]
 
     def parse_retrieved(self,retrieved):
-        matches = [[retrieved['documents'][0][i],retrieved['distances'][0][i],retrieved['metadatas'][0][i]] for i in range(3)]
+        matches = [[retrieved['documents'][0][i],retrieved['distances'][0][i],retrieved['metadatas'][0][i]] for i in range(10)]
         do = matches[0][2]['action'] if matches[0][2]['type'] == 'nav' else matches[0][2]['answer']
         return matches,do
 
