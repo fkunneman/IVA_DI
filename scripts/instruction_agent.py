@@ -65,7 +65,7 @@ class InstructAgent:
                 """  
                 Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
             De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
-            Maak korte zinnen. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
+            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
                 """
             )
             interface = (
@@ -95,7 +95,7 @@ class InstructAgent:
                 """  
                 Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
             De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
-            Maak korte zinnen. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
+            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
                 """
             )
             interface = (
