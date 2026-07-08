@@ -104,7 +104,10 @@ def api_new_session(request: HttpRequest, model_name: str) -> HttpResponse:
             status=500
         )
     agents[agent_id] = agent
-    histories[agent_id].append(Message(agent.patterns[0], "agent"))
+    if agent.domain == 'travel':
+        histories[agent_id].append(Message(agent.patterns[0], "agent"))
+    elif agent.domain == 'passport':
+        histories[agent_id].append(Message(agent.patterns[1], "agent"))
     request.session['agent_id'] = agent_id
     print(f"Created new session (API): {agent_id}")
     return HttpResponse(

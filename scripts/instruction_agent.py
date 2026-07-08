@@ -462,6 +462,7 @@ class InstructAgent:
     def prepare_instructions(self,instruction_file,name):
         instructions = self.load_lines(instruction_file)
         self.instruction_dict[name] = self.clean_lines(instructions)
+        self.instructions = self.instruction_dict[self.domain]
 
     def prepare_patterns(self,pattern_file):
         patterns = self.load_lines(pattern_file)
