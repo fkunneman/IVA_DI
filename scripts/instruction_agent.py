@@ -237,7 +237,7 @@ class InstructAgent:
         retrieved_context = ""
         instruction = ""
         dynamic_system_prompt_with_context = ""
-        if matches[0][1] > 0.35: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
+        if matches[0][1] > 0.20: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
             prompt = True
             examples = [x[0] for x in matches[:5] if x[1] < 0.65]
             role, interface = self.get_system_prompt()

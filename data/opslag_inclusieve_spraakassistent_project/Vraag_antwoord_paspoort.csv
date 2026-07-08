@@ -47,7 +47,6 @@
 "Waar naartoe?;Het veld 'voornaam' staat onder het veld 'achternaam';7";
 "Waar moet ik heen?;Het veld 'geboortedatum' staat onder het veld 'voornaam';8";
 "Waar is de kalenderknop?;De kalenderknop staat rechts van het veld 'geboortedatum';8";
-"Kalenderknop?;De kalenderknop staat rechts van het veld 'geboortedatum';8";
 "Waarom wordt het veld rood?;Dat betekent dat je nog je geboortedatum in moet vullen;8";
 "Ongeldige datum, formaat: DD-MM-YYYY?;Dat betekent dat je je geboortedatum niet goed hebt ingevuld. Vul eerst de dag in, dan de maand, dan het jaar. ;8";
 "Hoe moet ik mijn geboortedatum invullen?;Vul eerst de dag in, dan de maand, dan het jaar. ;";
