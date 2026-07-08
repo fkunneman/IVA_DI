@@ -24,13 +24,14 @@ class InstructAgent:
     """
     Container for the instruction agent
     """
-    def __init__(self,llm,dialogue):
+    def __init__(self,llm,startdomain):
         self.llm = llm
         self.instruction_index = None
         self.context = None
         self.prev_context = None
-        self.domain = dialogue
+        self.domain = startdomain
         self.instructions = []
+        self.instruction_dict = {}
         self.patterns = None
         self.pattern = 'b'
         self.rag = None
@@ -47,17 +48,33 @@ class InstructAgent:
         self.set_logger()
         self.clean_buffer()
         self.context = 'b'
+        self.instructions = self.instruction_dict[self.domain]
         if self.domain == 'travel':
             print(self.patterns[0])
-        elif self.domain == 'passport':
+        elif self.domain == 'passport':  
             print(self.patterns[1])
+        while True:
+            user_input = input("You: ")
+            response = self.chat_with_agent(user_input)
+            if response == "Tot ziens!":
+                break
+        if self.domain == 'travel':
+            self.domain = 'passport'
+            print(self.patterns[1])
+        elif self.domain == 'passport':
+            self.domain = 'travel'
+            print(self.patterns[0])
+        print('Selecting new instructions from',self.instruction_dict)
+        self.instructions = self.instruction_dict[self.domain]
+        self.context = 'b'
         while True:
             user_input = input("You: ")
             response = self.chat_with_agent(user_input)
             print(f"Agent: {response}")
             if response == "Tot ziens!":
                 break
-
+    
+ 
     def get_system_prompt(self):
         # custom system prompts per domain to reduce processing time
         if self.domain == 'travel':
@@ -179,12 +196,12 @@ class InstructAgent:
         prompt = False
         agent_response = ""
         #retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav','instruct']}}, {'step_context': {'$in': ['all',str(self.context),'']}}]})
-        retrieved = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav','instruct']}})
+        retrieved = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav',self.domain]}})
         matches,do = self.parse_retrieved(retrieved)
         string_match = fuzz.ratio(processed_input,matches[0][0])
         info = [', '.join([m[0] for m in matches]),round(matches[0][1],2),string_match,self.domain,self.context,matches[0][2]['type'],do,self.instruction_index]
         log.extend([str(x) for x in info])
-        #print(retrieved,self.context,string_match)
+        print(retrieved,self.context,string_match)
         response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,matches,string_match,do)
         if prompt:
             #print('dynamic system prompt',dynamic_system_prompt_with_context)
@@ -220,7 +237,7 @@ class InstructAgent:
         retrieved_context = ""
         instruction = ""
         dynamic_system_prompt_with_context = ""
-        if matches[0][1] >= 0.30: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
+        if matches[0][1] > 0.35: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
             prompt = True
             examples = [x[0] for x in matches[:5] if x[1] < 0.65]
             role, interface = self.get_system_prompt()
@@ -256,18 +273,18 @@ class InstructAgent:
                 )
             else:
                 types = list(set([x[2]['type'] for x in matches[:5]]))
-                if len(types) == 1 and types[0] == 'instruct': # instruction question
+                if len(types) == 1 and types[0] == self.domain: # instruction question
                     contexts = list(set([x[2]['step_context'] for x in matches[:5]]))
+                    #print("LEN CONTEXTS",len(contexts))
                     if len(contexts) >= 3: #contextualized question
                         select = [x for x in matches if str(x[2]['step_context']) == str(self.context)]
+                        #print('SELECT',select)
                         if len(select) > 0:
                             response_content = select[0][2]['answer']
                         else:
                             response_content = matches[0][2]['answer']
                     else:
                         response_content = matches[0][2]['answer']
-                elif matches[0][2]['type'] == 'instruct':
-                    response_content = matches[0][2]['answer']
                 elif matches[0][2]['type'] == 'nav':
                     if do == 'clarify':
                         prompt = True
@@ -317,6 +334,8 @@ class InstructAgent:
                         if self.instruction_index == (len(self.instructions)-1) and self.context != 'e':
                             response_content = f"{response_content} {self.patterns[2]}"
                             self.context = 'e'
+                elif matches[0][2]['type'] == self.domain:
+                    response_content = matches[0][2]['answer']
         return response_content, prompt, dynamic_system_prompt_with_context
         
     def navigate(self,do):
@@ -415,7 +434,7 @@ class InstructAgent:
         with open(self.logfile,'a') as csvfile:
             csv_writer = csv.writer(csvfile, delimiter=';')
             csv_writer.writerow(l)
-
+            
     ###############################################################################################
     ### Preparation functions #######################################################################
     ###############################################################################################
@@ -424,13 +443,13 @@ class InstructAgent:
         self.rag = collection
         for entry in rag_files:
             if entry[0] == 'qa':
-                self.add_qa(entry[1])
+                self.add_qa(entry[1],entry[2])
             elif entry[0] == 'nav':
                 self.add_nav(entry[1])
 
-    def add_qa(self,qa_file):
+    def add_qa(self,domain,qa_file):
         docs = self.load_docs(qa_file)
-        docs_formatted, metadata_formatted = self.format_qa(docs)
+        docs_formatted, metadata_formatted = self.format_qa(domain,docs)
         uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
         self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)
 
@@ -440,9 +459,9 @@ class InstructAgent:
         uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
         self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)   
 
-    def prepare_instructions(self,instruction_file):
+    def prepare_instructions(self,instruction_file,name):
         instructions = self.load_lines(instruction_file)
-        self.instructions = self.clean_lines(instructions)
+        self.instruction_dict[name] = self.clean_lines(instructions)
 
     def prepare_patterns(self,pattern_file):
         patterns = self.load_lines(pattern_file)
@@ -480,7 +499,7 @@ class InstructAgent:
         documents = doc_loader.load()
         return documents
 
-    def format_qa(self,docs):
+    def format_qa(self,domain,docs):
         rag_documents = []
         rag_metadata = []
         for doc in docs:
@@ -492,7 +511,7 @@ class InstructAgent:
             inp = parts[2].replace('Context: ', '') # Extract actual question
             outp = parts[3]
             context = parts[4]
-            meta = {'type':'instruct', 'answer': outp, 'step_context' : str(context)}
+            meta = {'type':domain, 'answer': outp, 'step_context' : str(context)}
             rag_documents.append(inp)
             rag_metadata.append(meta)
         return rag_documents, rag_metadata
