@@ -1,0 +1,163 @@
+User utterance;User utterance annotated;Top 3 matches;Distance;Fuzzy distance;Domain;Context;RAG collection;Action;Instruction step;System prompt;Agent response;Cleaned agent response;Correct (0/1);Type fout
+ nu opnieuw zeggen. ik wil starten.;Nu opnieuw zeggen. Ik wil starten. ;Kun je dat opnieuw zeggen?, Ik kan starten, Ik wil starten, Ik kan beginnen, Ik wil beginnen, Ik snap het niet., Ik weet het niet, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?;0.22;52;passport;b;nav;current step;0;;;Stap 1. Scroll naar beneden. Klik op de blauwe tekst 'Paspoort, ID-kaart en rijbewijs'.;1;
+ ja, volgende.;Ja, volgende. ;Volgende, Ja, Wat bedoel je?, Wat zeg je?, Wat zeggen jij?, dankje, Vorige, Kun je dat opnieuw zeggen?, Einde gesprek, Einde;0.26;64;passport;1;nav;next step;0;;;Klik op de blauwe tekst 'Paspoort 18 jaar en ouder'.;1;
+ volgende? volgende.;Volgende? Volgende.;Volgende, Vorige, Einde gesprek, Einde, Ik weet het niet, Geen vragen, Wat zeg je?, Ik snap het niet., Wat bedoel je?, dankje;0.07;50;passport;2;nav;next step;1;;;Scroll naar beneden. Klik op de blauwe tekst 'afspraak maken'.;1;
+ volgende.;volgende.;Volgende, Vorige, Einde, Einde gesprek, Ik weet het niet, Geen vragen, Wat zeg je?, Ik snap het niet., Gedaan, dankje;0.02;78;passport;3;nav;next step;2;;;Stap 4. Onder 'persoon/personen' kun je kiezen voor hoeveel personen je het paspoort aanvraagt. Druk op de 'plus-knop' om mensen toe te voegen aan het witte vakje.;1;
+ volgende...;Volgende.;Volgende, Vorige, Einde gesprek, Einde, Ik weet het niet, Geen vragen, Wat zeg je?, Ik snap het niet., Wat bedoel je?, dankje;0.05;70;passport;4;nav;next step;3;;;Klik op de knop '2 Kies een locatie' en Kies de locatie voor je afspraak;1;
+ volgende.;Volgende.;Volgende, Vorige, Einde, Einde gesprek, Ik weet het niet, Geen vragen, Wat zeg je?, Ik snap het niet., Gedaan, dankje;0.02;78;passport;5;nav;next step;4;;;Kies een dag en tijd voor je afspraak;1;
+ volgende.;Volgende.;Volgende, Vorige, Einde, Einde gesprek, Ik weet het niet, Geen vragen, Wat zeg je?, Ik snap het niet., Gedaan, dankje;0.02;78;passport;6;nav;next step;5;;;Vul je achternaam en voornaam in;1;
+ ik ben klaar. dank je wel voor je help.;Ik ben klaar. Dank je wel voor je help.;Ik ben klaar, Ik kan starten, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Ik snap het niet.;0.21;42;passport;7;nav;Done;6;;;Je zegt ' ik ben klaar. dank je wel voor je help.'. Weet je zeker dat je wil stoppen met het gesprek?;1;
+ ja, ik wil stoppen. dankjewel.;Ja, ik wil stoppen, dankjewel. ;dankjewel, Ik wil stoppen, dankje, Ik kan starten, Ik wil starten, Ik wil beginnen, Ik kan beginnen, Wat bedoel je?, Ik weet het niet, Kun je dat opnieuw zeggen?;0.29;45;passport;7;passport; Graag gedaan!;6;"Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
+            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
+                
+            
+                User interface paspoort aanvragen:
+    
+                Venster 1: homepage
+    
+                Clickable text:
+                - 'Verhuizing doorgeven'
+                - 'Paspoort, ID-kaart en rijbewijs'
+    
+                Gedrag venster 1:
+                - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
+                - Clickable text wordt weergegeven in blauw, kan gebruiker op klikken
+    
+                Venster 2:
+    
+                Clickable text:
+                - Paspoort 18 jaar en ouder
+    
+                Section headers:
+                -'Paspoort aanvragen'
+                -'ID-kaart aanvragen'
+    
+                Gedrag venster 2:
+                - Clickable text wordt weergegeven in blauw en kan worden aangeklikt door de gebruiker.
+                - Klikken opent de bijbehorende pagina of sectie.
+                - Section headers zijn zwarte tekst en staan boven de kolommen.
+                - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
+    
+                Venster 3:
+    
+                Section:
+                - 'Aanvragen'
+    
+                Clickable text:
+                - 'Afspraak maken'
+                - 'Adressen en openingstijden stadsloketten'
+    
+                Gedrag venster 3:
+                - Section headers zijn in zwarte tekst
+                - Section 'Aanvragen' staat boven clickable text 'afspraak maken'
+    
+                Venster 4 (form):
+    
+                Velden:
+                - 'Persoon/personen' (getal)
+                - 'Locatie' (radio buttons)
+                - 'Achternaam'
+                - 'Voornaam'
+                - 'Geboortedatum'
+                - 'E-mailadres'
+                - 'Mobiel telefoonnummer'
+    
+                Knoppen:
+                - '+'
+                - '-'
+                - 'Datum afspraak' (Datumkiezer)
+                - 'Beschikbare tijden'
+                - 'geboortedatum' (Datumkiezer)
+                - 'Land code' (dropdown)
+                - 'Maak afspraak'
+                - 'Opnieuw beginnen'
+    
+                Gedrag interface:
+    
+                - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
+                - De user is niet verplicht om een telefoonnummer in te vullen
+                
+            Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
+            ['dankjewel', 'Ik wil stoppen', 'dankje', 'Ik kan starten', 'Ik wil starten']
+            Formuleer een reactie op de uiting van de gebruiker, met gebruik van de geselecteerde antwoorden. Geef geen nieuwe instructie en genereer geen dialoog. 
+            Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'"; Goed, ik begrijp dat je wilt stoppen. Als je in de toekomst nog hulp nodig hebt, sta ik voor je klaar. Fijne dag verder!; Goed, ik begrijp dat je wilt stoppen. Als je in de toekomst nog hulp nodig hebt, sta ik voor je klaar. Fijne dag verder!;1;
+ fijne dag.;Fijne dag. ;dankje, Wat zeg je?, Kun je dat opnieuw zeggen?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?;0.44;24;passport;7;passport; Graag gedaan!;6;"Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
+            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
+                
+            
+                User interface paspoort aanvragen:
+    
+                Venster 1: homepage
+    
+                Clickable text:
+                - 'Verhuizing doorgeven'
+                - 'Paspoort, ID-kaart en rijbewijs'
+    
+                Gedrag venster 1:
+                - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
+                - Clickable text wordt weergegeven in blauw, kan gebruiker op klikken
+    
+                Venster 2:
+    
+                Clickable text:
+                - Paspoort 18 jaar en ouder
+    
+                Section headers:
+                -'Paspoort aanvragen'
+                -'ID-kaart aanvragen'
+    
+                Gedrag venster 2:
+                - Clickable text wordt weergegeven in blauw en kan worden aangeklikt door de gebruiker.
+                - Klikken opent de bijbehorende pagina of sectie.
+                - Section headers zijn zwarte tekst en staan boven de kolommen.
+                - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
+    
+                Venster 3:
+    
+                Section:
+                - 'Aanvragen'
+    
+                Clickable text:
+                - 'Afspraak maken'
+                - 'Adressen en openingstijden stadsloketten'
+    
+                Gedrag venster 3:
+                - Section headers zijn in zwarte tekst
+                - Section 'Aanvragen' staat boven clickable text 'afspraak maken'
+    
+                Venster 4 (form):
+    
+                Velden:
+                - 'Persoon/personen' (getal)
+                - 'Locatie' (radio buttons)
+                - 'Achternaam'
+                - 'Voornaam'
+                - 'Geboortedatum'
+                - 'E-mailadres'
+                - 'Mobiel telefoonnummer'
+    
+                Knoppen:
+                - '+'
+                - '-'
+                - 'Datum afspraak' (Datumkiezer)
+                - 'Beschikbare tijden'
+                - 'geboortedatum' (Datumkiezer)
+                - 'Land code' (dropdown)
+                - 'Maak afspraak'
+                - 'Opnieuw beginnen'
+    
+                Gedrag interface:
+    
+                - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
+                - De user is niet verplicht om een telefoonnummer in te vullen
+                
+            Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
+            ['dankje', 'Wat zeg je?', 'Kun je dat opnieuw zeggen?', 'Waar moet ik klikken?', 'Waar moet ik klikken?']
+            Formuleer een reactie op de uiting van de gebruiker, met gebruik van de geselecteerde antwoorden. Geef geen nieuwe instructie en genereer geen dialoog. 
+            Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'"; Tot ziens!; Tot ziens!;1;

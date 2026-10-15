@@ -1,0 +1,541 @@
+from pathlib import Path
+
+from langchain_classic.memory import ConversationBufferMemory
+from langchain_community.document_loaders import CSVLoader
+from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_community.vectorstores import Chroma
+import chromadb
+from chromadb.api.types import EmbeddingFunction, Documents, Embeddings
+from uuid import uuid4
+from fuzzywuzzy import fuzz
+import time
+import datetime
+import csv
+import os
+import time
+import datetime
+import csv
+import os
+
+class InstructAgent:
+    """
+    Container for the instruction agent
+    """
+    def __init__(self,llm,startdomain):
+        self.llm = llm
+        self.instruction_index = None
+        self.context = None
+        self.prev_context = None
+        self.domain = startdomain
+        self.instructions = []
+        self.instruction_dict = {}
+        self.patterns = None
+        self.pattern = 'b'
+        self.rag = None
+        self.memory = None
+        self.last = None
+        self.logfile = None
+        self.quit = False
+
+    ###############################################################################################
+    ### Dialog functions ##########################################################################
+    ###############################################################################################
+
+    def chat(self):
+        self.set_logger()
+        self.clean_buffer()
+        self.context = 'b'
+        self.instructions = self.instruction_dict[self.domain]
+        if self.domain == 'travel':
+            print(self.patterns[0])
+        elif self.domain == 'passport':  
+            print(self.patterns[1])
+        while True:
+            user_input = input("You: ")
+            response = self.chat_with_agent(user_input)
+            if response == "Tot ziens!":
+                break
+        if self.domain == 'travel':
+            self.domain = 'passport'
+            print(self.patterns[1])
+        elif self.domain == 'passport':
+            self.domain = 'travel'
+            print(self.patterns[0])
+        print('Selecting new instructions from',self.instruction_dict)
+        self.instructions = self.instruction_dict[self.domain]
+        self.context = 'b'
+        while True:
+            user_input = input("You: ")
+            response = self.chat_with_agent(user_input)
+            print(f"Agent: {response}")
+            if response == "Tot ziens!":
+                break
+    
+ 
+    def get_system_prompt(self,prompt=False):
+        if prompt:
+            role = prompt['role']
+            interface = prompt['interface']
+        else:
+            # custom system prompts per domain to reduce processing time
+            if self.domain == 'travel':
+                role = (
+                    """  
+                    Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
+                De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+                Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
+                    """
+                )
+                interface = (
+                    """
+                    User interface reis plannen:
+        
+                    Velden:
+                    - 'van' (vertrekpunt)
+                    - 'naar' (bestemming)
+        
+                    Knoppen
+                    - 'nu' (standaard instelling)
+                    - 'vertrek'
+                    - 'aankomst'
+                    - 'datum' (datumkiezer)
+                    - 'tijd' (dropdown)
+                    - 'plan je reis'
+        
+                    Gedrag interface:
+        
+                    - 'vertrek': de gebruiker kiest vertrekdag met 'datum' en vertrektijd met 'tijd'
+                    - 'aankomst': de gebruiker kiest de aankomstdag met 'datum' en aankomsttijd met 'tijd'
+                    """
+                )
+            elif self.domain == 'passport':
+                role = (
+                    """  
+                    Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
+                De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
+                Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
+                    """
+                )
+                interface = (
+                    """
+                    User interface paspoort aanvragen:
+        
+                    Venster 1: homepage
+        
+                    Clickable text:
+                    - 'Verhuizing doorgeven'
+                    - 'Paspoort, ID-kaart en rijbewijs'
+        
+                    Gedrag venster 1:
+                    - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
+                    - Clickable text wordt weergegeven in blauw, kan gebruiker op klikken
+        
+                    Venster 2:
+        
+                    Clickable text:
+                    - Paspoort 18 jaar en ouder
+        
+                    Section headers:
+                    -'Paspoort aanvragen'
+                    -'ID-kaart aanvragen'
+        
+                    Gedrag venster 2:
+                    - Clickable text wordt weergegeven in blauw en kan worden aangeklikt door de gebruiker.
+                    - Klikken opent de bijbehorende pagina of sectie.
+                    - Section headers zijn zwarte tekst en staan boven de kolommen.
+                    - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
+        
+                    Venster 3:
+        
+                    Section:
+                    - 'Aanvragen'
+        
+                    Clickable text:
+                    - 'Afspraak maken'
+                    - 'Adressen en openingstijden stadsloketten'
+        
+                    Gedrag venster 3:
+                    - Section headers zijn in zwarte tekst
+                    - Section 'Aanvragen' staat boven clickable text 'afspraak maken'
+        
+                    Venster 4 (form):
+        
+                    Velden:
+                    - 'Persoon/personen' (getal)
+                    - 'Locatie' (radio buttons)
+                    - 'Achternaam'
+                    - 'Voornaam'
+                    - 'Geboortedatum'
+                    - 'E-mailadres'
+                    - 'Mobiel telefoonnummer'
+        
+                    Knoppen:
+                    - '+'
+                    - '-'
+                    - 'Datum afspraak' (Datumkiezer)
+                    - 'Beschikbare tijden'
+                    - 'geboortedatum' (Datumkiezer)
+                    - 'Land code' (dropdown)
+                    - 'Maak afspraak'
+                    - 'Opnieuw beginnen'
+        
+                    Gedrag interface:
+        
+                    - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                    - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                    - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
+                    - De user is niet verplicht om een telefoonnummer in te vullen
+                    """
+                )
+        return role, interface
+
+    def chat_with_agent(self, user_input: str, threshold = False) -> str:
+        #global current_instruction_index, system_prompt # Ensure system_prompt is accessible
+        processed_input = user_input.lower()
+        chat_history_messages = self.memory.load_memory_variables({})['chat_history']
+        log = [processed_input]
+        prompt = False
+        agent_response = ""
+        #retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav','instruct']}}, {'step_context': {'$in': ['all',str(self.context),'']}}]})
+        retrieved = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav',self.domain]}})
+        matches,do = self.parse_retrieved(retrieved)
+        string_match = fuzz.ratio(processed_input,matches[0][0])
+        info = [', '.join([m[0] for m in matches]),round(matches[0][1],2),string_match,self.domain,self.context,matches[0][2]['type'],do,self.instruction_index]
+        log.extend([str(x) for x in info])
+        print(retrieved,self.context,string_match)
+        response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,matches,string_match,do,threshold)
+        if prompt:
+            #print('dynamic system prompt',dynamic_system_prompt_with_context)
+            start_time = time.perf_counter()
+            # Construct messages list for LLM invocation
+            messages_for_llm = [
+                SystemMessage(content=dynamic_system_prompt_with_context)
+                ] + chat_history_messages + [
+                HumanMessage(content=user_input),
+                AIMessage(content="") # Prime the model to generate an AI response
+            ]
+            # Invoke the llm with the prepared messages, passing stop sequences directly
+            agent_response = self.llm.invoke(messages_for_llm, stop=['Human:', 'Jij:', 'Gebruiker:'], max_tokens=250)
+            response_content = agent_response.split('Human:')[0] # The LLM's generated text
+            if len(response_content) > 250:
+                response_content = '.'.join(response_content.split('.')[:-1]).split('\n')[0].split('\n')[0]
+            elapsed_time = time.perf_counter() - start_time
+            print('Prompt took',elapsed_time)
+        # Update the ConversationBufferMemory with the interaction
+        self.memory.save_context(
+            {"input": user_input},
+            {"output": response_content}
+        )
+        self.last = [processed_input,matches[0][0],matches[0][1],matches[0][2]['type'],do]
+        log.extend([dynamic_system_prompt_with_context, agent_response, response_content])
+        self.log(log)
+        return response_content
+
+    def select_response(self,processed_input,matches,fuzzy_match,do,threshold):
+        prompt = False
+        # Initialize response content
+        response_content = ""
+        retrieved_context = ""
+        instruction = ""
+        dynamic_system_prompt_with_context = ""
+        if not threshold:
+            threshold = threshold
+        if matches[0][1] > threshold: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
+            prompt = True
+            examples = [x[0] for x in matches[:5] if x[1] < 0.65]
+            role, interface = self.get_system_prompt()
+            dynamic_system_prompt_with_context = (
+            f"""
+            {role}
+            {interface}
+            Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
+            {examples}
+            Formuleer een reactie op de uiting van de gebruiker, met gebruik van de geselecteerde antwoorden. Geef geen nieuwe instructie en genereer geen dialoog. 
+            Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'
+            """
+            )
+#        elif distance >= 0.50 and distance < 0.70:
+#            response_content = f"""Bedoelde je "{match[0]}"?"""
+#            self.prev_context = self.context
+#            self.context = 'd'
+        else:
+            if len(processed_input.split()) <= 3 and fuzzy_match < 50:
+                prompt = True
+                role, interface = self.get_system_prompt()
+                examples = [x[0] for x in matches[:5] if x[1] < 0.75]
+                history = self.memory.load_memory_variables({})['chat_history']
+                dynamic_system_prompt_with_context = (
+                f"""
+                {role}
+                {interface}
+                Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
+                {examples}
+                Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
+                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen.'
+                """
+                )
+            else:
+                types = list(set([x[2]['type'] for x in matches[:5]]))
+                if len(types) == 1 and types[0] == self.domain: # instruction question
+                    contexts = list(set([x[2]['step_context'] for x in matches[:5]]))
+                    #print("LEN CONTEXTS",len(contexts))
+                    if len(contexts) >= 3: #contextualized question
+                        select = [x for x in matches if str(x[2]['step_context']) == str(self.context)]
+                        #print('SELECT',select)
+                        if len(select) > 0:
+                            response_content = select[0][2]['answer']
+                        else:
+                            response_content = matches[0][2]['answer']
+                    else:
+                        response_content = matches[0][2]['answer']
+                elif matches[0][2]['type'] == 'nav':
+                    if do == 'clarify':
+                        prompt = True
+                        role, interface = self.get_system_prompt()
+                        dynamic_system_prompt_with_context = (
+                        f"""
+                        {role}
+                        {interface}
+                        De huidige instructie is: '{self.get_instruction()}'
+                        De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen. Formuleer geenn nieuwe instructiestap.'  
+                    """
+                        )
+                    elif do == 'Done':
+                        if self.context == 'e':
+                            response_content = 'Tot ziens!'
+                        else:
+                            response_content = f"Je zegt '{processed_input}'. Weet je zeker dat je wil stoppen met het gesprek?"                            
+                            self.quit = True
+                    elif do == 'start':
+                        if self.context == 'b':
+                            self.instruction_index = 0
+                            response_start = self.navigate('start')
+                            instruction = self.get_instruction()
+                            response_content = f"{response_content}{response_start}{instruction}"
+                    elif do == 'Confirm':
+                        if self.quit:
+                            response_content = 'Tot ziens!'
+                        else:
+                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
+                    elif do == 'Reject':
+                        if self.quit:
+                            self.quit = False
+                            if self.context == 'b':
+                                response_content = f"Goed! Zeg het maar als je wil beginnen"
+                            else:
+                                response_content = f"Okay! Dan gaan we lekker door."
+                        elif self.context == 'd':
+                            response_content = f"Okay! Zou je het dan nog een keer willen zeggen, in iets andere woorden?"
+                            self.context = self.prev_context
+                        else:
+                            response_content = f"Ik verstond '{processed_input}', maar verwacht hier geen antwoord. Zeg 'volgende' als je naar de volgende instructie wil, of stel een vraag over de huidige instructie."
+                    else:
+                        response_start = self.navigate(do)
+                        instruction = self.get_instruction()
+                        response_content = f"{response_content}{response_start}{instruction}"
+                        # End of conversation pattern
+                        if self.instruction_index == (len(self.instructions)-1) and self.context != 'e':
+                            response_content = f"{response_content} {self.patterns[2]}"
+                            self.context = 'e'
+                elif matches[0][2]['type'] == self.domain:
+                    response_content = matches[0][2]['answer']
+        return response_content, prompt, dynamic_system_prompt_with_context
+        
+    def navigate(self,do):
+        # perform the fitting navigation and add the fitting response
+        if do == 'start': # start ov instructions
+            response_start = 'Super! '
+            self.context = '1'
+        else:
+            if do == 'next step': # move to next step
+                self.instruction_index += 1
+                response_start = ''
+            elif do == 'current step': # repeat current step
+                response_start = ''
+            elif do == 'previous step': # move to next step
+                if self.instruction_index == 0:
+                    response_start = 'Je zit al bij stap 1, dus ik kan geen stap terug. '
+                else:
+                    self.instruction_index -= 1
+                    response_start = 'De vorige stap is: '
+            try:
+                self.context = str(self.instruction_index+1)
+            except:
+                self.context = self.context
+        return response_start
+
+    ###############################################################################################
+    ### Retrieval functions #######################################################################
+    ###############################################################################################
+
+    def get_instruction(self):
+        """
+        Retrieves the instruction at the current_index, with boundary checks.
+
+        Args:
+            current_index (int): The index of the current instruction.
+            instruction_list (list): A list of all instructions.
+
+        Returns:
+            str: The instruction or an error message if the index is out of bounds.
+        """
+        #if not self.active_instructions:
+        #    return "Er zijn momenteel geen instructies beschikbaar."
+        if self.instruction_index >= len(self.instructions):
+            return "U heeft het einde van de instructies bereikt."  # 'You have reached the end of the instructions.'
+        else:
+            return self.instructions[self.instruction_index]
+
+    def parse_retrieved(self,retrieved):
+        matches = [[retrieved['documents'][0][i],retrieved['distances'][0][i],retrieved['metadatas'][0][i]] for i in range(10)]
+        do = matches[0][2]['action'] if matches[0][2]['type'] == 'nav' else matches[0][2]['answer']
+        return matches,do
+
+    ###############################################################################################
+    ### Helper functions ##########################################################################
+    ###############################################################################################
+
+    def clean_buffer(self):
+        # Initialize ConversationBufferMemory for chat history
+        self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
+
+        # Set the current instruction index to None
+        self.instruction_index = 0
+
+    def set_logger(self, logging_path: str = None):
+        dt = datetime.datetime.now().__str__().split('.')[0]
+        current_path = os.path.abspath('')
+        if not logging_path:
+            logging_path = '/'.join(current_path.split('/')[:-1]) + '/data/logs/'
+        elif not logging_path.endswith('/'):
+            logging_path += '/'
+        Path(logging_path).mkdir(parents=True, exist_ok=True)
+        self.logfile = logging_path + dt + '_conversation_log.csv'
+        with open(self.logfile, 'w') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=';')
+            csv_writer.writerow(['User utterance','Top 3 matches','Distance','Fuzzy distance','Domain','Context','RAG collection','Action','Instruction step','System prompt','Agent response','Cleaned agent response'])
+
+    def log(self,l):
+        with open(self.logfile,'a') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=';')
+            csv_writer.writerow(l)
+
+    def set_logger(self, logging_path: str = None):
+        dt = datetime.datetime.now().__str__().split('.')[0]
+        current_path = os.path.abspath('')
+        if not logging_path:
+            logging_path = '/'.join(current_path.split('/')[:-1]) + '/data/logs/'
+        elif not logging_path.endswith('/'):
+            logging_path += '/'
+        Path(logging_path).mkdir(parents=True, exist_ok=True)
+        self.logfile = logging_path + dt + '_conversation_log.csv'
+        with open(self.logfile, 'w') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=';')
+            csv_writer.writerow(['User utterance','Top 3 matches','Distance','Fuzzy distance','Domain','Context','RAG collection','Action','Instruction step','System prompt','Agent response','Cleaned agent response'])
+
+    def log(self,l):
+        with open(self.logfile,'a') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=';')
+            csv_writer.writerow(l)
+            
+    ###############################################################################################
+    ### Preparation functions #######################################################################
+    ###############################################################################################
+
+    def setup_rag(self, collection, rag_files):
+        self.rag = collection
+        for entry in rag_files:
+            if entry[0] == 'qa':
+                self.add_qa(entry[1],entry[2])
+            elif entry[0] == 'nav':
+                self.add_nav(entry[1])
+
+    def add_qa(self,domain,qa_file):
+        docs = self.load_docs(qa_file)
+        docs_formatted, metadata_formatted = self.format_qa(domain,docs)
+        uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
+        self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)
+
+    def add_nav(self,nav_file):
+        docs = self.load_docs(nav_file)
+        docs_formatted, metadata_formatted = self.format_nav(docs)
+        uuids = [str(uuid4()) for _ in range(len(docs_formatted))]
+        self.rag.add(ids=uuids, documents=docs_formatted, metadatas=metadata_formatted)   
+
+    def prepare_instructions(self,instruction_file,name):
+        instructions = self.load_lines(instruction_file)
+        self.instruction_dict[name] = self.clean_lines(instructions)
+        if self.domain in self.instruction_dict.keys():
+            self.instructions = self.instruction_dict[self.domain]
+
+    def prepare_patterns(self,pattern_file):
+        patterns = self.load_lines(pattern_file)
+        self.patterns = self.clean_lines(patterns)
+
+    def load_lines(self, lines_file):
+        # Instantiate CSVLoader with the path to the lines file
+        loader = CSVLoader(lines_file)
+
+        # Load the documents
+        loaded_documents = loader.load()
+
+        # Extract the 'page_content' from each document into a Python list
+        lines = [doc.page_content for doc in loaded_documents]
+
+        return lines
+
+    def clean_lines(self, lines):
+        cleaned_lines = []
+        for line in lines:
+            # Remove BOM character if present
+            cleaned_str = line.lstrip('\ufeff').replace('\nNone:',',')
+            # Split the string by ';' and take the last part (the actual instruction)
+            parts = cleaned_str.split(';')
+            if len(parts) > 2:
+                cleaned_lines.append(parts[2])
+            else:
+                cleaned_lines.append(cleaned_str) # Fallback if splitting fails
+        return cleaned_lines
+
+    def load_docs(self,f):
+        # Instantiate CSVLoader with the path to the 'Vraag_antwoord_ov.csv' file
+        doc_loader = CSVLoader(f, csv_args={"delimiter": ";","quotechar": '"'})
+        # Load the documents
+        documents = doc_loader.load()
+        return documents
+
+    def format_qa(self,domain,docs):
+        rag_documents = []
+        rag_metadata = []
+        for doc in docs:
+            content = doc.page_content
+            # Remove BOM character if present
+            cleaned_content = content.lstrip('\ufeff')
+            # Split the content by ';' to extract Q&A parts
+            parts = cleaned_content.split('\n')[0].split(';')
+            inp = parts[2].replace('Context: ', '') # Extract actual question
+            outp = parts[3]
+            context = parts[4]
+            meta = {'type':domain, 'answer': outp, 'step_context' : str(context)}
+            rag_documents.append(inp)
+            rag_metadata.append(meta)
+        return rag_documents, rag_metadata
+
+    def format_nav(self,docs):
+        rag_documents = []
+        rag_metadata = []
+        for doc in docs:
+            content = doc.page_content
+            # Remove BOM character if present
+            cleaned_content = content.lstrip('\ufeff')
+            # Split the content by ';' to extract Q&A parts
+            parts = cleaned_content.split('\n')
+            inp = parts[0].replace('Input: ', '').strip()  # Extract input command
+            outp = parts[1].replace('Action: ', '').strip()  # Extract action
+            meta = {'type':'nav', 'action':outp, 'step_context':'all'}
+            rag_documents.append(inp)
+            rag_metadata.append(meta)
+        return rag_documents, rag_metadata

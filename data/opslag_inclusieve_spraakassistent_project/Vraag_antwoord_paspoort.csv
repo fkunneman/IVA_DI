@@ -13,7 +13,7 @@
 "Waar?;Het witte veld staat onder 'persoon personen';4";
 "Waar veld?;Het witte veld staat onder 'persoon personen';4";
 "Waar moet ik klikken?;Het witte veld staat onder 'persoon personen';4";
-"Waar is de plus knop?;De plus knop staat rechts van witte veld;4";
+"Waar is de plus knop?;De plus knop staat rechts van het witte veld;4";
 "Wat is de plus knop?;De knop met het kruisje;4";
 "Waar naartoe?;De plus knop staat rechts van witte veld;4";
 "Waar is de knop 'Kies een locatie';De knop '2 Kies een locatie' staat onder de plus knop;5";
@@ -28,9 +28,7 @@
 "Ik wil andere maand zien;Klik op het pijltje naar rechts in de hoek rechts boven;6";
 "Waarom zie ik deze maand niet?;Er is deze maand geen afspraak meer mogelijk. ;6";
 "Waarom zie niet deze maand?;Er is deze maand geen afspraak meer mogelijk. ;6";
-"Waar moet ik een tijd kiezen?;Scroll naar beneden. Kies een van de hokjes met een tijd erin onder de dagen. ;6";
 "Waar moet ik naartoe?;Scroll naar beneden. Kies een van de hokjes met een tijd erin onder de dagen. ;6";
-"Waar tijd kiezen?;Scroll naar beneden. Kies een van de hokjes met een tijd erin onder de dagen. ;6";
 "Wat betekent 'We sturen een afspraakbevestiging. ';Dit betekent dat je een mail krijgt van je afspraak ;";
 "We sturen een afspraakbevestiging?;Dit betekent dat je een mail krijgt van je afspraak ;";
 "Wat betekent 'Voer uw e-mailadres (verplicht) en mobiele telefoonnummer (optioneel) in'?;Dit betekent dat je je emailadres in moet vullen en je telefoonnummer in mag vullen;";
