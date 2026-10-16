@@ -29,7 +29,15 @@ class SpeakSession:
         self.audio = pyaudio.PyAudio()
         self.stream = None
 
-    def say(self, utterance: str):
+    def say(self, utterance: str) -> bool:
+        """Says the utterance and returns True if it was allowed to finish the utterance
+
+        Args:
+            utterance (str): listen very carefully, I'm going to say this only once
+
+        Returns:
+            bool: whether I was allowed to finish my utterance
+        """
         self.stop_listening()
         self.utterance_index += 1
         current_utterance_index = self.utterance_index
@@ -46,11 +54,13 @@ class SpeakSession:
             for subchunk in range(0, len(chunk.audio_int16_bytes), STREAM_WINDOW):
                 # stop streaming the utterance
                 if self.utterance_index != current_utterance_index:
-                    return
+                    return False
 
                 self.stream.write(
                     chunk.audio_int16_bytes[subchunk : subchunk + STREAM_WINDOW]
                 )
+
+        return True
 
     def stop_saying(self):
         """Stop speaking right now"""

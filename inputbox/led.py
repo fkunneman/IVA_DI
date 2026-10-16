@@ -15,8 +15,7 @@ LED_BLUE = 4
 dev = usb.core.find(idVendor=LED_ID_VENDOR, idProduct=LED_ID_PRODUCT)
 
 if dev is None:
-    print("LED device not attached")
-    sys.quit()
+    sys.exit("LED device not attached")
 
 # disconnect if attached
 if dev.is_kernel_driver_active(0):

@@ -24,7 +24,7 @@ manager = Manager()
 class ExperimentSession:
     def __init__(self):
         self.__state = manager.Value("experiment_state", "preflight")
-        """'preflight' | 'ready' | 'recording' | 'waiting' | 'speaking'
+        """'preflight' | 'ready' | 'recording' | 'waiting' | 'error' | 'speaking'
         """
 
     def set_state(self, value):
@@ -59,7 +59,8 @@ class ExperimentSession:
                 self.start()
 
             case "waiting":
-                pass
+                # show that nothing can be done now
+                self.set_state("error")
 
             case "ready":
                 self.listen()
@@ -100,8 +101,11 @@ def speak_target():
         utterance = speak_queue.get()
         experiment_session.set_state("speaking")
         print(f'say "{utterance}"')
-        speak_session.say(utterance)
-        experiment_session.set_state("ready")
+        if (
+            speak_session.say(utterance)
+            and experiment_session.get_state() == "speaking"
+        ):
+            experiment_session.set_state("ready")
 
 
 def listen_target():
@@ -117,8 +121,10 @@ def listen_target():
 
 def led_target():
     blink = False
+    blink_speed = 0.4
     while running:
-        match experiment_session.get_state():
+        curr_state = experiment_session.get_state()
+        match curr_state:
             case "preflight":
                 set_leds({LED_BLUE: True})
 
@@ -134,10 +140,18 @@ def led_target():
                 blink = False
                 set_leds({LED_RED: True})
 
+            case "error":
+                blink_speed = 0.1
+                set_leds({LED_RED: blink})
+                blink = not blink
+
             case "speaking":
                 set_leds({LED_YELLOW: True})
 
-        time.sleep(0.4)
+        if curr_state != "error":
+            blink_speed = 0.4
+
+        time.sleep(blink_speed)
 
 
 def exit():
