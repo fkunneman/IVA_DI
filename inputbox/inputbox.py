@@ -87,12 +87,17 @@ experiment_session = ExperimentSession()
 
 def button_target():
     global speak_queue
+    # if the button is held for some time, also trigger after release
+    start_press = time.time()
 
     while running:
         events = get_gamepad()
         for event in events:
-            if event.ev_type == "Key":
-                if event.state == 1 and event.code == PRIMARY_BUTTON_ID:
+            if event.ev_type == "Key" and event.code == PRIMARY_BUTTON_ID:
+                if event.state == 1:
+                    start_press = time.time()
+                    experiment_session.press()
+                elif event.state == 0 and (time.time() - start_press) > 1.0:
                     experiment_session.press()
 
 
