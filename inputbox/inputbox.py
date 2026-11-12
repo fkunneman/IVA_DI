@@ -8,6 +8,7 @@ from audio import SpeakSession
 
 from inputs import get_gamepad
 from led import set_leds, toggle_led, LED_BLUE, LED_GREEN, LED_RED, LED_YELLOW
+from api import Api
 
 PRIMARY_BUTTON_ID = "BTN_TRIGGER"
 SECONDARY_BUTTON_ID = "BTN_THUMB"
@@ -20,6 +21,7 @@ running = True
 
 manager = Manager()
 
+api = Api()
 
 class ExperimentSession:
     def __init__(self):
@@ -45,11 +47,9 @@ class ExperimentSession:
 
         self.set_state("waiting")
 
-        # TODO: start session and retrieve start message
+        start_message = api.start()
         self.set_state("speaking")
-        speak_queue.put(
-            "Hallo, welkom bij het begin van dit onderzoek. We doen alsof dit het juiste startbericht is."
-        )
+        speak_queue.put(start_message)
 
     def press(self):
         """Changes the states on a button press"""
@@ -117,11 +117,13 @@ def listen_target():
     while running:
         listen_queue.get()
         recording = speak_session.listen()
-        print(len(recording))
-        # TODO: send recording to server
         experiment_session.set_state("waiting")
-        time.sleep(2)
-        speak_queue.put("Hallo wereld, dit zou het antwoord zijn.")
+
+        text = api.speech2text(recording)
+        print(f'Text: {text}')
+        response = api.message_lang_chain(text)
+
+        speak_queue.put(response)
 
 
 def led_target():

@@ -40,6 +40,12 @@ It should show something as:
 
 Update the values in `led.py` if they differ from these values.
 
+Make sure you have permission to access the USB device. This might involve [changing the udev rules](https://unix.stackexchange.com/questions/44308/understanding-udev-rules-and-permissions-in-libusb).
+
 ## Speaking
 
 For the TTS (text to speech) [Piper](https://github.com/OHF-Voice/piper1-gpl) is used. Playing might require [installing additional system requirements](https://pypi.org/project/PyAudio/) for PyAudio e.g. `portaudio19-dev` on Linux. It also requires downloading a voice (by default nl_NL-alex is used).
+
+## Communication with the server
+
+Create a `_SETTINGS` file (you can copy the `_SETTINGS.sample` file)
