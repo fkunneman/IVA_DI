@@ -44,6 +44,12 @@ class InstructAgent:
     ### Dialog functions ##########################################################################
     ###############################################################################################
 
+    def initiate(self):
+        self.set_logger()
+        self.clean_buffer()
+        self.context = 'b'
+        self.instructions = self.instruction_dict[self.domain]   
+    
     def chat(self):
         self.set_logger()
         self.clean_buffer()
@@ -205,7 +211,7 @@ class InstructAgent:
         string_match = fuzz.ratio(processed_input,matches[0][0])
         info = [', '.join([m[0] for m in matches]),round(matches[0][1],2),string_match,self.domain,self.context,matches[0][2]['type'],do,self.instruction_index]
         log.extend([str(x) for x in info])
-        print(retrieved,self.context,string_match)
+        #print(retrieved,self.context,string_match)
         response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,matches,string_match,do,threshold)
         if prompt:
             #print('dynamic system prompt',dynamic_system_prompt_with_context)
@@ -242,7 +248,7 @@ class InstructAgent:
         instruction = ""
         dynamic_system_prompt_with_context = ""
         if not threshold:
-            threshold = threshold
+            threshold = 0.20
         if matches[0][1] > threshold: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
             prompt = True
             examples = [x[0] for x in matches[:5] if x[1] < 0.65]

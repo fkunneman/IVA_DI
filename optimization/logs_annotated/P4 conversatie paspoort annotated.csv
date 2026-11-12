@@ -909,7 +909,7 @@ AI:  Je kunt zowel de datumkiezer gebruiken als de datum invullen in het bijbeho
 Human:  Oké, dat weet ik.
 
 AI:  Als u nog vragen heeft of verdere hulp nodig heeft, laat het mij weten. Succes met uw afspraak!";" Volg de instructies op het scherm om de datum en tijd van uw afspraak te selecteren.
-";;;
+";1;Threshold - RAG in plaats van instructie;
  ik heb alle gegevens van mij gedaan. wat moet ik nu doen?;Ik heb alle gegevens van mij gedaan. Wat moet ik nu doen?;Wat moet ik doen?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik heen?, Waar moet ik heen?;0.23;43;passport;4;nav;clarify;3;"Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
             De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
             Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
