@@ -1,8 +1,6 @@
 "Vraag;Antwoord;Context";
-"Nee;Dan wachten we nog even. Neem je tijd!;b";
-"Nog niet;Dan wachten we nog even. Neem je tijd!;b";
 "Wat is 'vorige'?;Vorige stap' betekent de stap voor deze stap.;";
-"Vorige?;Vorige stap' betekent de stap voor deze stap.;";
+"Wat betekent Vorige?;Vorige stap' betekent de stap voor deze stap.;";
 "Wat is 'volgende'?;Volgende stap' betekent de stap na deze stap.;";
 "Wat is 'herhaal'?;'Herhaal' betekent dat ik de stap opnieuw uitleg;";
 "Waar is het veld 'Van'?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
@@ -11,7 +9,7 @@
 "Waar vind ik die?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
 "Waar moet ik klikken?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
 "Waar moet ik heen?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
-"Waar is knop?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
+"Waar is die knop?;Het veld 'Van' staat onder 'Waar wil je heen?' in het midden van het scherm.  ;1";
 "Utrecht Centraal;Oké vul dat in bij ‘Van’.;1";
 "Waar is het veld 'Naar'?;Het veld 'Naar' staat onder 'Van' in het midden van het scherm. ;2";
 "Waar is naar?;Het veld 'Naar' staat onder 'Van' in het midden van het scherm.;2";
