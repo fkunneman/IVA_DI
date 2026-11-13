@@ -80,14 +80,12 @@ class InstructAgent:
         if self.domain == 'travel':
             role = (
                 """  
-                Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
-            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
-            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
+                Je bent een spraakassistent die digibeten helpt om een reis te plannen met het openbaar vervoer, via de website 9292.nl. De instructies worden al stap voor stap gegeven via een regelgebaseerd systeem, en de gebruiker probeert de instructies op een laptopscherm uit te voeren. Als de gebruiker een vraag stelt of informatie deelt, wordt gezocht in een knowledge base naar passende antwoorden. Probeer een passende reactie op de gebruiker te geven, mogelijk met hulp van de antwoorden uit de knowledge base. Hou je formulering kort, met simpel taalgebruik op B1 niveau. Gebruik bij je advies de context van het gesprek tot dan toe. 
                 """
             )
             interface = (
                 """
-                User interface reis plannen:
+                De interface van 9292.nl ziet er zo uit:
     
                 Velden:
                 - 'van' (vertrekpunt)
@@ -109,82 +107,87 @@ class InstructAgent:
             )
         elif self.domain == 'passport':
             role = (
-                """  
-                Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
-            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
-            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
+                """
+                Je bent een spraakassistent die digibeten helpt om een afspraak in te plannen bij de gemeente Amsterdam, voor het aanvragen van een paspoort. De instructies worden al stap voor stap gegeven via een regelgebaseerd systeem, en de gebruiker probeert de instructies op een laptopscherm uit te voeren. Als de gebruiker een vraag stelt of informatie deelt, wordt gezocht in een knowledge base naar passende antwoorden. Probeer een passende reactie op de gebruiker te geven, mogelijk met hulp van de antwoorden uit de knowledge base. Hou je formulering kort, met simpel taalgebruik op B1 niveau. Gebruik bij je advies de context van het gesprek tot dan toe. 
                 """
             )
-            interface = (
-                """
-                User interface paspoort aanvragen:
-    
-                Venster 1: homepage
-    
-                Clickable text:
-                - 'Verhuizing doorgeven'
-                - 'Paspoort, ID-kaart en rijbewijs'
-    
-                Gedrag venster 1:
-                - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
-                - Clickable text wordt weergegeven in blauw, kan gebruiker op klikken
-    
-                Venster 2:
-    
-                Clickable text:
-                - Paspoort 18 jaar en ouder
-    
-                Section headers:
-                -'Paspoort aanvragen'
-                -'ID-kaart aanvragen'
-    
-                Gedrag venster 2:
-                - Clickable text wordt weergegeven in blauw en kan worden aangeklikt door de gebruiker.
-                - Klikken opent de bijbehorende pagina of sectie.
-                - Section headers zijn zwarte tekst en staan boven de kolommen.
-                - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
-    
-                Venster 3:
-    
-                Section:
-                - 'Aanvragen'
-    
-                Clickable text:
-                - 'Afspraak maken'
-                - 'Adressen en openingstijden stadsloketten'
-    
-                Gedrag venster 3:
-                - Section headers zijn in zwarte tekst
-                - Section 'Aanvragen' staat boven clickable text 'afspraak maken'
-    
-                Venster 4 (form):
-    
-                Velden:
-                - 'Persoon/personen' (getal)
-                - 'Locatie' (radio buttons)
-                - 'Achternaam'
-                - 'Voornaam'
-                - 'Geboortedatum'
-                - 'E-mailadres'
-                - 'Mobiel telefoonnummer'
-    
-                Knoppen:
-                - '+'
-                - '-'
-                - 'Datum afspraak' (Datumkiezer)
-                - 'Beschikbare tijden'
-                - 'geboortedatum' (Datumkiezer)
-                - 'Land code' (dropdown)
-                - 'Maak afspraak'
-                - 'Opnieuw beginnen'
-    
-                Gedrag interface:
-    
-                - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
-                - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
-                - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
-                - De user is niet verplicht om een telefoonnummer in te vullen
-                """
+            if self.instruction_index < 4:
+                interface = (
+                    """
+                    De eerste pagina's van de interface van amsterdam.nl ziet er zo uit:
+        
+                    Venster 1: homepage
+        
+                    Knoppen:
+                    - 'Verhuizing doorgeven'
+                    - 'Paspoort, ID-kaart en rijbewijs'
+        
+                    Gedrag venster 1:
+                    - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
+                    - Knoppen worden onderstreept en in het blauw weergegeven 
+        
+                    Venster 2:
+        
+                    Knoppen:
+                    - Paspoort 18 jaar en ouder
+        
+                    Section headers:
+                    -'Paspoort aanvragen'
+                    -'ID-kaart aanvragen'
+        
+                    Gedrag venster 2:
+                    - Knoppen worden onderstreept en in het blauw weergegeven. 
+                    - Section headers zijn zwarte tekst en staan boven de kolommen.
+                    - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
+        
+                    Venster 3:
+        
+                    Section header:
+                    - 'Aanvragen'
+        
+                    Knoppen:
+                    - 'een afspraak'
+                    - 'Adressen en openingstijden stadsloketten'
+        
+                    Gedrag venster 3:
+                    - Section headers zijn in zwarte tekst
+                    - Section 'Aanvragen' staat boven de knop 'een afspraak'
+                    """
+                    )
+            else:
+                interface = (
+                    """
+                    Het invullen van een formulier op amsterdam.nl ziet er zo uit:
+        
+                    Velden:
+                    - 'Persoon/personen' (Knoppen: '+', '-')
+                    - 'Locatie' (radio buttons - 'Centrum', 'West', 'Zuid', 'Oost', 'Noord')
+                    - 'Kies een Datum en Tijd' (Datumkiezer)
+                    - 'Achternaam'
+                    - 'Voornaam'
+                    - 'Geboortedatum'
+                    - 'E-mailadres'
+                    - 'Mobiel telefoonnummer'
+        
+                    Datumkiezer:
+                    - bovenin staat de maand, met links en rechts daarvan een pijl in een blauwe cirkel om een maand eerder en later te kiezen
+                    - zwarte letters: de datum is niet beschikbaar
+                    - blauw en onderstreept: er zijn tijden beschikbaar op deze datum
+                    - blauwe achtergrond en witte letters: op deze datum is nu geklikt
+                    - als er op een datum geklikt is staat daaronder: 'Beschikbare tijden voor [datum]'; op die tijden (in een blauw kader in blauwe letters) kan geklikt worden om een keuze te maken.
+        
+                    Gedrag interface:
+        
+                    - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                    - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                    - De gebruiker kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
+                    - De gebruiker is niet verplicht om een telefoonnummer in te vullen
+                    - Section headers zijn in zwarte tekst voor een grijze achtergrond
+                    - Section '1 Kies een product' staat boven het veld 'Persoon/personen'
+                    - Section '2 Kies een locatie' staat boven het veld 'Locatie'
+                    - Section '3 Kies een Datum en Tijd' staat boven de Datumkiezer
+                    - Section '4 Uw Gegevens' staat boven de overige velden
+                    """
             )
         return role, interface
 
@@ -235,20 +238,27 @@ class InstructAgent:
         # Initialize response content
         response_content = ""
         retrieved_context = ""
-        instruction = ""
         dynamic_system_prompt_with_context = ""
+        instruction = self.get_instruction()
+        examples = [x[0] for x in matches[:5] if x[1] < 0.65]
+        role, interface = self.get_system_prompt()
         if matches[0][1] > 0.20: # a close enough match triggers the prewritten response, otherwise prompt based on the top 3
             prompt = True
-            examples = [x[0] for x in matches[:5] if x[1] < 0.65]
-            role, interface = self.get_system_prompt()
             dynamic_system_prompt_with_context = (
             f"""
             {role}
             {interface}
+            De laatst geven instructie is:
+            {instruction}
             Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
             {examples}
-            Formuleer een reactie op de uiting van de gebruiker, met gebruik van de geselecteerde antwoorden. Geef geen nieuwe instructie en genereer geen dialoog. 
-            Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'
+            {role}
+            {interface}
+            De laatst geven instructie is:
+            {instruction}
+            Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
+            {examples}
+            Help de gebruiker met een kort advies op basis van zijn uiting, met gebruik van de geselecteerde antwoorden. Als je te weinig informatie hebt om te antwoorden, geef dan aan dat je het niet weet. 
             """
             )
 #        elif distance >= 0.50 and distance < 0.70:
@@ -265,10 +275,11 @@ class InstructAgent:
                 f"""
                 {role}
                 {interface}
+                De laatst geven instructie is:
+                {instruction}
                 Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
                 {examples}
-                Formuleer een reactie op de uiting van de gebruiker. Geef geen nieuwe instructie en genereer geen dialoog. 
-                Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiker om 'vorige' of 'volgende' te zeggen.'
+                Help de gebruiker met een kort advies op basis van zijn uiting, met gebruik van de geselecteerde antwoorden. Als je te weinig informatie hebt om te antwoorden, geef dan aan dat je het niet weet. 
                 """
                 )
             else:
@@ -294,7 +305,7 @@ class InstructAgent:
                         {role}
                         {interface}
                         De huidige instructie is: '{self.get_instruction()}'
-                        De gebruiker vraagt om een verduidelijking van de instructie. Formuleer deze verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk. Richt je met de verduidelijking op de gebruiker. Geef alleen de verduidelijking en geen andere toevoegingen. Formuleer geenn nieuwe instructiestap.'  
+                        De gebruiker vraagt om een verduidelijking van de instructie. Geef een korte verduidelijking op een manier dat een digibeet het snapt, maar maak het niet te kinderlijk.
                     """
                         )
                     elif do == 'Done':
