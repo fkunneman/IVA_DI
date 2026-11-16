@@ -35,9 +35,9 @@ class ResponseGenerator:
 
     ### MODULES ###
 
-    def generate_response(self, turn, threshold=0.20):
-        output = self.agent.chat_with_agent(turn['asr'],threshold)
-        return output
+    def generate_response(self, turn, threshold=0.20,sp=1):
+        output, info = self.agent.chat_with_agent(turn['asr'],threshold,sp)
+        return output, info
         
         
         

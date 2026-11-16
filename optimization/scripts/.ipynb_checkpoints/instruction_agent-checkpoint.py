@@ -38,6 +38,7 @@ class InstructAgent:
         self.memory = None
         self.last = None
         self.logfile = None
+        self.index_system_prompt = 1
         self.quit = False
 
     ###############################################################################################
@@ -87,132 +88,255 @@ class InstructAgent:
             interface = prompt['interface']
         else:
             # custom system prompts per domain to reduce processing time
-            if self.domain == 'travel':
-                role = (
-                    """  
-                    Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
-                De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
-                Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
-                    """
-                )
-                interface = (
-                    """
-                    User interface reis plannen:
-        
-                    Velden:
-                    - 'van' (vertrekpunt)
-                    - 'naar' (bestemming)
-        
-                    Knoppen
-                    - 'nu' (standaard instelling)
-                    - 'vertrek'
-                    - 'aankomst'
-                    - 'datum' (datumkiezer)
-                    - 'tijd' (dropdown)
-                    - 'plan je reis'
-        
-                    Gedrag interface:
-        
-                    - 'vertrek': de gebruiker kiest vertrekdag met 'datum' en vertrektijd met 'tijd'
-                    - 'aankomst': de gebruiker kiest de aankomstdag met 'datum' en aankomsttijd met 'tijd'
-                    """
-                )
-            elif self.domain == 'passport':
-                role = (
-                    """  
-                    Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
-                De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
-                Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
-                    """
-                )
-                interface = (
-                    """
-                    User interface paspoort aanvragen:
-        
-                    Venster 1: homepage
-        
-                    Clickable text:
-                    - 'Verhuizing doorgeven'
-                    - 'Paspoort, ID-kaart en rijbewijs'
-        
-                    Gedrag venster 1:
-                    - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
-                    - Clickable text wordt weergegeven in blauw, kan gebruiker op klikken
-        
-                    Venster 2:
-        
-                    Clickable text:
-                    - Paspoort 18 jaar en ouder
-        
-                    Section headers:
-                    -'Paspoort aanvragen'
-                    -'ID-kaart aanvragen'
-        
-                    Gedrag venster 2:
-                    - Clickable text wordt weergegeven in blauw en kan worden aangeklikt door de gebruiker.
-                    - Klikken opent de bijbehorende pagina of sectie.
-                    - Section headers zijn zwarte tekst en staan boven de kolommen.
-                    - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
-        
-                    Venster 3:
-        
-                    Section:
-                    - 'Aanvragen'
-        
-                    Clickable text:
-                    - 'Afspraak maken'
-                    - 'Adressen en openingstijden stadsloketten'
-        
-                    Gedrag venster 3:
-                    - Section headers zijn in zwarte tekst
-                    - Section 'Aanvragen' staat boven clickable text 'afspraak maken'
-        
-                    Venster 4 (form):
-        
-                    Velden:
-                    - 'Persoon/personen' (getal)
-                    - 'Locatie' (radio buttons)
-                    - 'Achternaam'
-                    - 'Voornaam'
-                    - 'Geboortedatum'
-                    - 'E-mailadres'
-                    - 'Mobiel telefoonnummer'
-        
-                    Knoppen:
-                    - '+'
-                    - '-'
-                    - 'Datum afspraak' (Datumkiezer)
-                    - 'Beschikbare tijden'
-                    - 'geboortedatum' (Datumkiezer)
-                    - 'Land code' (dropdown)
-                    - 'Maak afspraak'
-                    - 'Opnieuw beginnen'
-        
-                    Gedrag interface:
-        
-                    - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
-                    - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
-                    - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
-                    - De user is niet verplicht om een telefoonnummer in te vullen
-                    """
-                )
+            if self.index_system_prompt == 1:
+                if self.domain == 'travel':
+                    role = (
+                        """  
+                        Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
+                    De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+                    Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
+                        """
+                    )
+                    interface = (
+                        """
+                        User interface reis plannen:
+            
+                        Velden:
+                        - 'van' (vertrekpunt)
+                        - 'naar' (bestemming)
+            
+                        Knoppen
+                        - 'nu' (standaard instelling)
+                        - 'vertrek'
+                        - 'aankomst'
+                        - 'datum' (datumkiezer)
+                        - 'tijd' (dropdown)
+                        - 'plan je reis'
+            
+                        Gedrag interface:
+            
+                        - 'vertrek': de gebruiker kiest vertrekdag met 'datum' en vertrektijd met 'tijd'
+                        - 'aankomst': de gebruiker kiest de aankomstdag met 'datum' en aankomsttijd met 'tijd'
+                        """
+                    )
+                elif self.domain == 'passport':
+                    role = (
+                        """  
+                        Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het inplannen van een afspraak om een paspoort aan te vragen bij de gemeente amsterdam. 
+                    De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals locatie of persoonlijke gegevens. 
+                    Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis.
+                        """
+                    )
+                    interface = (
+                        """
+                        User interface paspoort aanvragen:
+            
+                        Venster 1: homepage
+            
+                        Clickable text:
+                        - 'Verhuizing doorgeven'
+                        - 'Paspoort, ID-kaart en rijbewijs'
+            
+                        Gedrag venster 1:
+                        - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
+                        - Clickable text wordt weergegeven in blauw, kan gebruiker op klikken
+            
+                        Venster 2:
+            
+                        Clickable text:
+                        - Paspoort 18 jaar en ouder
+            
+                        Section headers:
+                        -'Paspoort aanvragen'
+                        -'ID-kaart aanvragen'
+            
+                        Gedrag venster 2:
+                        - Clickable text wordt weergegeven in blauw en kan worden aangeklikt door de gebruiker.
+                        - Klikken opent de bijbehorende pagina of sectie.
+                        - Section headers zijn zwarte tekst en staan boven de kolommen.
+                        - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
+            
+                        Venster 3:
+            
+                        Section:
+                        - 'Aanvragen'
+            
+                        Clickable text:
+                        - 'Afspraak maken'
+                        - 'Adressen en openingstijden stadsloketten'
+            
+                        Gedrag venster 3:
+                        - Section headers zijn in zwarte tekst
+                        - Section 'Aanvragen' staat boven clickable text 'afspraak maken'
+            
+                        Venster 4 (form):
+            
+                        Velden:
+                        - 'Persoon/personen' (getal)
+                        - 'Locatie' (radio buttons)
+                        - 'Achternaam'
+                        - 'Voornaam'
+                        - 'Geboortedatum'
+                        - 'E-mailadres'
+                        - 'Mobiel telefoonnummer'
+            
+                        Knoppen:
+                        - '+'
+                        - '-'
+                        - 'Datum afspraak' (Datumkiezer)
+                        - 'Beschikbare tijden'
+                        - 'geboortedatum' (Datumkiezer)
+                        - 'Land code' (dropdown)
+                        - 'Maak afspraak'
+                        - 'Opnieuw beginnen'
+            
+                        Gedrag interface:
+            
+                        - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                        - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                        - De user kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
+                        - De user is niet verplicht om een telefoonnummer in te vullen
+                        """
+                    )
+            elif self.index_system_prompt == 2:
+                if self.domain == 'travel':
+                    role = (
+                        """  
+                        Je bent een spraakassistent die digibeten helpt om een reis te plannen met het openbaar vervoer, via de website 9292.nl. De instructies worden al stap voor stap gegeven via een regelgebaseerd systeem, en de gebruiker probeert de instructies op een laptopscherm uit te voeren. Als de gebruiker een vraag stelt of informatie deelt, wordt gezocht in een knowledge base naar passende antwoorden. Probeer een passende reactie op de gebruiker te geven, mogelijk met hulp van de antwoorden uit de knowledge base. Hou je formulering kort, met simpel taalgebruik op B1 niveau. Gebruik bij je advies de context van het gesprek tot dan toe. 
+                        """
+                    )
+                    interface = (
+                        """
+                        De interface van 9292.nl ziet er zo uit:
+            
+                        Velden:
+                        - 'van' (vertrekpunt)
+                        - 'naar' (bestemming)
+            
+                        Knoppen
+                        - 'nu' (standaard instelling)
+                        - 'vertrek'
+                        - 'aankomst'
+                        - 'datum' (datumkiezer)
+                        - 'tijd' (dropdown)
+                        - 'plan je reis'
+            
+                        Gedrag interface:
+            
+                        - 'vertrek': de gebruiker kiest vertrekdag met 'datum' en vertrektijd met 'tijd'
+                        - 'aankomst': de gebruiker kiest de aankomstdag met 'datum' en aankomsttijd met 'tijd'
+                        """
+                    )
+                elif self.domain == 'passport':
+                    role = (
+                        """
+                        Je bent een spraakassistent die digibeten helpt om een afspraak in te plannen bij de gemeente Amsterdam, voor het aanvragen van een paspoort. De instructies worden al stap voor stap gegeven via een regelgebaseerd systeem, en de gebruiker probeert de instructies op een laptopscherm uit te voeren. Als de gebruiker een vraag stelt of informatie deelt, wordt gezocht in een knowledge base naar passende antwoorden. Probeer een passende reactie op de gebruiker te geven, mogelijk met hulp van de antwoorden uit de knowledge base. Hou je formulering kort, met simpel taalgebruik op B1 niveau. Gebruik bij je advies de context van het gesprek tot dan toe. 
+                        """
+                    )
+                    if self.instruction_index < 4:
+                        interface = (
+                            """
+                            De eerste pagina's van de interface van amsterdam.nl ziet er zo uit:
+                
+                            Venster 1: homepage
+                
+                            Knoppen:
+                            - 'Verhuizing doorgeven'
+                            - 'Paspoort, ID-kaart en rijbewijs'
+                
+                            Gedrag venster 1:
+                            - 'Paspoort, ID-kaart en rijbewijs' staat onder 'Verhuizing doorgeven'
+                            - Knoppen worden onderstreept en in het blauw weergegeven 
+                
+                            Venster 2:
+                
+                            Knoppen:
+                            - Paspoort 18 jaar en ouder
+                
+                            Section headers:
+                            -'Paspoort aanvragen'
+                            -'ID-kaart aanvragen'
+                
+                            Gedrag venster 2:
+                            - Knoppen worden onderstreept en in het blauw weergegeven. 
+                            - Section headers zijn zwarte tekst en staan boven de kolommen.
+                            - 'Paspoort 18 jaar en ouder' staat onder section header 'Paspoort aanvragen'
+                
+                            Venster 3:
+                
+                            Section header:
+                            - 'Aanvragen'
+                
+                            Knoppen:
+                            - 'een afspraak'
+                            - 'Adressen en openingstijden stadsloketten'
+                
+                            Gedrag venster 3:
+                            - Section headers zijn in zwarte tekst
+                            - Section 'Aanvragen' staat boven de knop 'een afspraak'
+                            """
+                        )
+                    else:
+                        interface = (
+                            """
+                            Het invullen van een formulier op amsterdam.nl ziet er zo uit:
+                
+                            Velden:
+                            - 'Persoon/personen' (Knoppen: '+', '-')
+                            - 'Locatie' (radio buttons - 'Centrum', 'West', 'Zuid', 'Oost', 'Noord')
+                            - 'Kies een Datum en Tijd' (Datumkiezer)
+                            - 'Achternaam'
+                            - 'Voornaam'
+                            - 'Geboortedatum'
+                            - 'E-mailadres'
+                            - 'Mobiel telefoonnummer'
+                
+                            Datumkiezer:
+                            - bovenin staat de maand, met links en rechts daarvan een pijl in een blauwe cirkel om een maand eerder en later te kiezen
+                            - zwarte letters: de datum is niet beschikbaar
+                            - blauw en onderstreept: er zijn tijden beschikbaar op deze datum
+                            - blauwe achtergrond en witte letters: op deze datum is nu geklikt
+                            - als er op een datum geklikt is staat daaronder: 'Beschikbare tijden voor [datum]'; op die tijden (in een blauw kader in blauwe letters) kan geklikt worden om een keuze te maken.
+                
+                            Gedrag interface:
+                
+                            - '+': user verhoogt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                            - '-': user verlaagt het getal in veld 'Persoon/personen', het aantal personen waarvoor paspoort wordt aangevraagd met 1
+                            - De gebruiker kan om een geboortedatum in te vullen het veld 'Geboortedatum' gebruiken of de datumkiezer
+                            - De gebruiker is niet verplicht om een telefoonnummer in te vullen
+                            - Section headers zijn in zwarte tekst voor een grijze achtergrond
+                            - Section '1 Kies een product' staat boven het veld 'Persoon/personen'
+                            - Section '2 Kies een locatie' staat boven het veld 'Locatie'
+                            - Section '3 Kies een Datum en Tijd' staat boven de Datumkiezer
+                            - Section '4 Uw Gegevens' staat boven de overige velden
+                            """
+                        )
         return role, interface
 
-    def chat_with_agent(self, user_input: str, threshold = False) -> str:
+    def chat_with_agent(self, user_input: str, threshold = False, sp = 1) -> str:
         #global current_instruction_index, system_prompt # Ensure system_prompt is accessible
+        self.index_system_prompt = sp
         processed_input = user_input.lower()
         chat_history_messages = self.memory.load_memory_variables({})['chat_history']
         log = [processed_input]
         prompt = False
         agent_response = ""
         #retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav','instruct']}}, {'step_context': {'$in': ['all',str(self.context),'']}}]})
-        retrieved = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav',self.domain]}})
-        matches,do = self.parse_retrieved(retrieved)
-        string_match = fuzz.ratio(processed_input,matches[0][0])
-        info = [', '.join([m[0] for m in matches]),round(matches[0][1],2),string_match,self.domain,self.context,matches[0][2]['type'],do,self.instruction_index]
+        retrieved_nav = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav']}})
+        retrieved_qa = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': [self.domain]}})
+        nav_matches,nav_do = self.parse_retrieved(retrieved_nav)
+        qa_matches,qa_do = self.parse_retrieved(retrieved_qa)
+        if nav_matches[0][1] < qa_matches[0][1] and nav_matches[0][1] <= 0.45:
+            nav_string_match = fuzz.ratio(processed_input,nav_matches[0][0])
+            response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,nav_matches,nav_string_match,nav_do,0.45)
+            info = [', '.join([m[0] for m in nav_matches]),round(nav_matches[0][1],2),nav_string_match,self.domain,self.context,nav_matches[0][2]['type'],nav_do,self.instruction_index]
+        else:
+            qa_string_match = fuzz.ratio(processed_input,qa_matches[0][0])
+            response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,qa_matches,qa_string_match,qa_do,0.25)
+            info = [', '.join([m[0] for m in qa_matches]),round(qa_matches[0][1],2),qa_string_match,self.domain,self.context,qa_matches[0][2]['type'],qa_do,self.instruction_index]
         log.extend([str(x) for x in info])
         #print(retrieved,self.context,string_match)
-        response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,matches,string_match,do,threshold)
+        #response_content, prompt, dynamic_system_prompt_with_context = self.select_response(processed_input,matches,string_match,do,threshold)
         if prompt:
             #print('dynamic system prompt',dynamic_system_prompt_with_context)
             start_time = time.perf_counter()
@@ -235,10 +359,13 @@ class InstructAgent:
             {"input": user_input},
             {"output": response_content}
         )
-        self.last = [processed_input,matches[0][0],matches[0][1],matches[0][2]['type'],do]
+        try:
+            self.last = [processed_input,nav_matches[0][0],nav_matches[0][1],nav_matches[0][2]['type'],nav_do]
+        except:
+            self.last = [processed_input,qa_matches[0][0],qa_matches[0][1],qa_matches[0][2]['type'],qa_do]
         log.extend([dynamic_system_prompt_with_context, agent_response, response_content])
         self.log(log)
-        return response_content
+        return response_content, info
 
     def select_response(self,processed_input,matches,fuzzy_match,do,threshold):
         prompt = False

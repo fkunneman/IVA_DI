@@ -22,7 +22,9 @@
 "Waar moet ik klikken?;Klik op de plek waar je een afspraak wilt maken ;5";
 "Waar moet ik heen?;Klik op de dag waarop je een afspraak wilt maken. Datums met blauwe cijfers zijn beschikbaar;6";
 "Waar?;Klik op de dag waarop je een afspraak wilt maken. Datums met blauwe cijfers zijn beschikbaar;6";
-"Ik wil volgende maand een afspraak;Klik op het pijltje naar rechts in de hoek rechts boven;6";
+"Ik kies voor de 7e;Als die datum in blauwe letters geschreven is kun je een tijd kiezen door erop te klikken. Anders is er op die datum geen afspraak beschikbaar, en zul je een andere datum moeten kiezen die blauw gekleurd is.;6";
+"Ik zou de 16e willen kiezen;Als die datum in blauwe letters geschreven is kun je een tijd kiezen door erop te klikken. Anders is er op die datum geen afspraak beschikbaar, en zul je een andere datum moeten kiezen die blauw gekleurd is.;6";
+"Ik wil volgende maand;Klik op het pijltje naar rechts in de hoek rechts boven;6";
 "Ik wil andere maand zien;Klik op het pijltje naar rechts in de hoek rechts boven;6";
 "Waarom zie ik deze maand niet?;Er is deze maand geen afspraak meer mogelijk. ;6";
 "Waar moet ik naartoe?;Scroll naar beneden. Kies een van de hokjes met een tijd erin onder de dagen. ;6";
@@ -59,5 +61,5 @@
 "dankjewel; Graag gedaan!;";
 "dank u; Graag gedaan!;";
 "dankje; Graag gedaan!;";
-"Ik sta nu op de pagina stadsloket;Daar staat informatie over de locatie, maar kun je geen afspraak boeken. Ga hiervoor terug naar de pagina 'Paspoort 18 jaar en ouder', en klik op 'een afspraak'.;"
-"Ik zit nu op de pagina adressen openingstijdens stadsloketten;Daar staat informatie over de stadsloketten, maar je kunt er geen afspraak boeken. Ga hiervoor terug naar de pagina 'Paspoort 18 jaar en ouder', en klik op 'een afspraak'.;"
+"Ik sta nu op de pagina stadsloket;Daar staat informatie over de locatie, maar kun je geen afspraak boeken. Ga hiervoor terug naar de pagina 'Paspoort 18 jaar en ouder', en klik op 'een afspraak'.;";
+"Ik zit nu op de pagina adressen openingstijdens stadsloketten;Daar staat informatie over de stadsloketten, maar je kunt er geen afspraak boeken. Ga hiervoor terug naar de pagina 'Paspoort 18 jaar en ouder', en klik op 'een afspraak'.;";

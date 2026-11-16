@@ -199,8 +199,9 @@ class InstructAgent:
         prompt = False
         agent_response = ""
         #retrieved = self.rag.query(query_texts=processed_input,n_results=3,where={'$and': [{'type': {'$in': ['nav','instruct']}}, {'step_context': {'$in': ['all',str(self.context),'']}}]})
-        retrieved = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav',self.domain]}})
-        matches,do = self.parse_retrieved(retrieved)
+        retrieved_nav = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': ['nav',self.domain]}})
+        retrieved_qa = self.rag.query(query_texts=processed_input,n_results=10,where={'type': {'$in': [self.domain]}})
+        matches,do = self.parse_retrieved(retrieved_nav)
         string_match = fuzz.ratio(processed_input,matches[0][0])
         info = [', '.join([m[0] for m in matches]),round(matches[0][1],2),string_match,self.domain,self.context,matches[0][2]['type'],do,self.instruction_index]
         log.extend([str(x) for x in info])
