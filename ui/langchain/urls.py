@@ -8,4 +8,5 @@ urlpatterns = [
     path('langchain/manage-sessions', views.manage_sessions, name='manage_sessions'),
     path('api/langchain/new-session/<path:model_name>', views.api_new_session, name='api_new_session'),
     path('api/langchain/message/<str:agent_id>', views.api_message, name='api_message'),
+    path('api/langchain/stop-session/<str:agent_id>', views.api_stop_session, name='api_stop_session'),
 ]

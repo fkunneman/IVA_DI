@@ -1,4 +1,5 @@
 startChainUrl=https://webapp.intelligent-voi.src.surf-hosted.nl/api/langchain/new-session/BramVanroy/GEITje-7B-ultra
+stopChainUrl=https://webapp.intelligent-voi.src.surf-hosted.nl/api/langchain/stop-session/
 messageChainUrl=https://webapp.intelligent-voi.src.surf-hosted.nl/api/langchain/message/
 speechApiUrl=https://webapp.intelligent-voi.src.surf-hosted.nl/api/whisper/openai/whisper-large-v3
 apiUser=USER

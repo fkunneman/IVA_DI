@@ -67,7 +67,8 @@ def new_session(request: HttpRequest) -> HttpResponse:
         # Create a new session
         agent_id = str(uuid.uuid4())
         try:
-            agent = create_agent(new_session_form.cleaned_data['model_name'], agent_id)
+            agent = create_agent(
+                new_session_form.cleaned_data['model_name'], agent_id)
         except OutOfMemoryError:
             return redirect(urls.reverse('langchain_webui') + '?error=out_of_memory')
         agents[agent_id] = agent
@@ -80,7 +81,8 @@ def new_session(request: HttpRequest) -> HttpResponse:
 
 
 def manage_sessions(request: HttpRequest) -> HttpResponse:
-    cuda_summary = torch.cuda.memory_summary() if torch.cuda.is_available() else "CUDA niet beschikbaar"
+    cuda_summary = torch.cuda.memory_summary(
+    ) if torch.cuda.is_available() else "CUDA niet beschikbaar"
     form = SessionsForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         agent_id = form.cleaned_data['session']
@@ -147,3 +149,24 @@ def api_message(request: HttpRequest, agent_id: str) -> HttpResponse:
         })
     )
 
+
+@csrf_exempt
+def api_stop_session(request: HttpRequest, agent_id: str) -> HttpResponse:
+    try:
+        agent = agents[agent_id]
+    except KeyError:
+        return HttpResponse(
+            json.dumps({
+                'error': 'invalid agent id',
+            }),
+            content_type='application/json',
+            status=400
+        )
+
+    discard_agent(agent_id)
+
+    return HttpResponse(
+        json.dumps({
+            'success': agent is not None
+        })
+    )

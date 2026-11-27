@@ -24,11 +24,13 @@ manager = Manager()
 
 api = Api()
 
+
 class ExperimentSession:
     def __init__(self):
         self.__state = manager.Value("experiment_state", "preflight")
         """'preflight' | 'ready' | 'recording' | 'waiting' | 'error' | 'speaking'
         """
+        self.agent_id = None
 
     def set_state(self, value):
         self.__state.set(value)
@@ -38,6 +40,7 @@ class ExperimentSession:
 
     def start(self):
         """Starts a new session, aborts the current one if it's running"""
+        self.stop()
         curr_state = self.get_state()
         match curr_state:
             case "recording":
@@ -48,16 +51,25 @@ class ExperimentSession:
 
         self.set_state("waiting")
 
-        start_message, agent_id = api.start()
-        agent_id_queue.put(agent_id)
+        start_message, self.agent_id = api.start()
+
+        agent_id_queue.put(self.agent_id)
         self.set_state("speaking")
         speak_queue.put(start_message)
+        return self.agent_id
 
-        return agent_id
+    def stop(self):
+        agent_id = self.agent_id
+        # clear it immediately; to prevent it from being removed
+        # after a new agent ID was set
+        self.agent_id = None
+        if agent_id:
+            api.stop(agent_id)
+        else:
+            print('Nothing to stop...')
 
     def press(self):
         """Changes the states on a button press"""
-        global agent_id_queue
         curr_state = self.get_state()
         match curr_state:
             case "preflight":
@@ -91,7 +103,6 @@ experiment_session = ExperimentSession()
 
 
 def button_target():
-    global speak_queue
     # if the button is held for some time, also trigger after release
     start_press = time.time()
 
@@ -119,8 +130,6 @@ def speak_target():
 
 
 def listen_target():
-    global agent_id_queue
-    agent_id = ''
     while running:
         listen_queue.get()
         if not agent_id_queue.empty():
@@ -129,7 +138,7 @@ def listen_target():
 
         recording = speak_session.listen()
         experiment_session.set_state("waiting")
-        print("Sending recording?")
+
         text = api.speech2text(recording)
         print(f'Text: {text}')
         response = api.message_lang_chain(text, agent_id)
@@ -198,6 +207,7 @@ while running:
             print("""q\tQuit
 r\tRestart""")
         case "q":
+            experiment_session.stop()
             exit()
         case "r":
             experiment_session.start()
