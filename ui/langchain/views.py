@@ -13,6 +13,9 @@ def langchain_webui(request: HttpRequest) -> HttpResponse:
 
     # Use existing session if available, otherwise "no session"
     agent_id = request.session.get('agent_id', None)
+    if agent_id is None:
+        agent_id = request.path.split('/')[-1]
+
     agent = agents.get(agent_id)
     if agent is None:
         agent_id = None  # Session has expired

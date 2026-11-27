@@ -8,7 +8,7 @@ voice = PiperVoice.load("./piper_models/nl_NL-alex-medium.onnx")
 
 # how many bytes are streamed at once?
 # every time a poll is done to see if the streaming should be aborted
-STREAM_WINDOW = 1000
+STREAM_WINDOW = 10
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1

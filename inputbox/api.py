@@ -21,30 +21,39 @@ class Api:
             }
 
     def start(self):
-        """(Re)starts the session and returns the first message"""
+        """(Re)starts the session and returns the first message and agent_id"""
         response = requests.post(
             self.values['startChainUrl'],
             '',
             headers=self._headers())
 
-        print(response)
+        if response.status_code != 200:
+            print(response)
+            
         data = response.json()
-        self.agent_id = data['agent_id']
-        return data['first_message']
+        agent_id = data['agent_id']
+        return data['first_message'], agent_id
 
-    def message_lang_chain(self, text: str ) -> str:
+    def message_lang_chain(self, text: str, agent_id: str) -> str:
         """Sends a text message to the lang chain and get a text response"""
         response = requests.post(
-            self.values['messageChainUrl' + self.agent_id],
-            f'message={text}',
+            self.values['messageChainUrl'] + agent_id,
+            {
+                'message': text
+            },
             headers=self._headers())
 
+        print(response)
+        print(response.json())
         return response.json()['response']
 
     def speech2text(self, audio: bytes) -> str:
+        with open('audio.wav', 'wb') as f:
+            f.write(audio)
+
         response = requests.post(
             self.values['speechApiUrl'],
-            files={'file', ('audio.wav', audio)},
+            files={'file': ('audio.wav', audio)},
             headers=self._headers('text')
         )
-        return response
+        return response.content.decode()

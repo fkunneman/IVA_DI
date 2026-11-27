@@ -15,6 +15,7 @@ SECONDARY_BUTTON_ID = "BTN_THUMB"
 
 listen_queue = Queue()
 speak_queue = Queue()
+agent_id_queue = Queue()
 speak_session = SpeakSession()
 
 running = True
@@ -47,12 +48,16 @@ class ExperimentSession:
 
         self.set_state("waiting")
 
-        start_message = api.start()
+        start_message, agent_id = api.start()
+        agent_id_queue.put(agent_id)
         self.set_state("speaking")
         speak_queue.put(start_message)
 
+        return agent_id
+
     def press(self):
         """Changes the states on a button press"""
+        global agent_id_queue
         curr_state = self.get_state()
         match curr_state:
             case "preflight":
@@ -114,14 +119,20 @@ def speak_target():
 
 
 def listen_target():
+    global agent_id_queue
+    agent_id = ''
     while running:
         listen_queue.get()
+        if not agent_id_queue.empty():
+            agent_id = agent_id_queue.get()     
+            print("AGENT_ID: " + agent_id)   
+
         recording = speak_session.listen()
         experiment_session.set_state("waiting")
-
+        print("Sending recording?")
         text = api.speech2text(recording)
         print(f'Text: {text}')
-        response = api.message_lang_chain(text)
+        response = api.message_lang_chain(text, agent_id)
 
         speak_queue.put(response)
 

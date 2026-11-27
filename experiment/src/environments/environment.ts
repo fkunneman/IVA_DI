@@ -1,7 +1,7 @@
 export const environment = {
   startChainUrl: 'https://webapp.intelligent-voi.src.surf-hosted.nl/api/langchain/new-session/BramVanroy/GEITje-7B-ultra',
   messageChainUrl: 'https://webapp.intelligent-voi.src.surf-hosted.nl/api/langchain/message/',
-  speechApiUrl: 'https://webapp.intelligent-voi.src.surf-hosted.nl/api/whisper/golesheed/whisper-v2-7fold-1',
+  speechApiUrl: 'https://webapp.intelligent-voi.src.surf-hosted.nl/api/whisper/openai/whisper-large-v3',
   apiUser: 'USER',
   apiPassword: 'PASSWORD'
 };
