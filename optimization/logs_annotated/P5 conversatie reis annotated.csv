@@ -1,0 +1,71 @@
+User utterance;User utterance annotated;Top 3 matches;Distance;Fuzzy distance;Domain;Context;RAG collection;Action;Instruction step;System prompt;Agent response;Cleaned agent response;Correct (0/1);Type fout
+ ***;***;Wat?, No, Stop, Next, Nope, Okee, Yes, Ja, Graag, Klaar;0.58;0;travel;b;nav;clarify;0;"Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
+                
+            
+                User interface reis plannen:
+    
+                Velden:
+                - 'van' (vertrekpunt)
+                - 'naar' (bestemming)
+    
+                Knoppen
+                - 'nu' (standaard instelling)
+                - 'vertrek'
+                - 'aankomst'
+                - 'datum' (datumkiezer)
+                - 'tijd' (dropdown)
+                - 'plan je reis'
+    
+                Gedrag interface:
+    
+                - 'vertrek': de gebruiker kiest vertrekdag met 'datum' en vertrektijd met 'tijd'
+                - 'aankomst': de gebruiker kiest de aankomstdag met 'datum' en aankomsttijd met 'tijd'
+                
+            Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
+            ['Wat?', 'No', 'Stop']
+            Formuleer een reactie op de uiting van de gebruiker, met gebruik van de geselecteerde antwoorden. Geef geen nieuwe instructie en genereer geen dialoog. 
+            Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'";"**Om je reis te plannen, start je door de velden 'van' en 'naar' in te vullen.**
+
+---
+
+**Opmerking:**
+
+Dit is een simulatie van hoe een AI zou kunnen reageren op een gebruiker die instructies nodig heeft voor het plannen van een reis met het openbaar vervoer op de 9292.nl website. Het is belangrijk om te noteren dat een echte AI zou reageren met gepersonaliseerde en interactieve instructies, gebaseerd op de daadwerkelijke input van de gebruiker.
+
+In een echte interactie zou de AI waarschijnlijk aanvullende vragen stellen of verzoeken om specifieke gegevens om de reis correct te kunnen plannen. De AI zou ook dynamische informatie kunnen leveren over routes en tijden, die afhankelijk zijn van de huidige dienstregeling en actuele gegevens over vertragingen of omleidingen."; **Om je reis te plannen, start je door de velden 'van' en 'naar' in te vullen.**;0;Turn-taking (op het verkeerde moment op ‘verzenden’ gedrukt)
+ joy, bedankt. ik ben eruit gekomen.;Joy, bedankt. Ik ben eruit gekomen. ;Ik ben klaar, Ik kan starten, Ik snap het niet., Ik kan beginnen, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Waar moet ik klikken?, Ik weet het niet, Wat bedoel je?;0.36;29;travel;b;nav;Done;0;"Je bent een spraakassistent die digibeten helpt om een digitale procedure stap voor stap te doorlopen. Dit doe je door instructies te geven die de gebruiker uitvoert. Je instructies gaan over het plannen van een reis met het openbaar vervoer via de website 9292.nl
+            De gebruiker probeert de instructies op een laptopscherm uit te voeren en hoeft in reactie op je instructies niet informatie te geven zoals vertrektijd, locatie of persoonlijke gegevens. 
+            Maak korte zinnen en formuleer met simpel taalgebruik op B1 niveau. Je kan de gebruiker tips geven en helpen met vragen. Hou je uitingen beknopt. Gebruik geen emojies en geef geen nieuwe instructie. Formuleer strikt een reactie op de gebruiker. Nogmaals: formuleer niet uit jezelf een instructie en gebruik geen emojis en gebruik geen emojis. 
+                
+            
+                User interface reis plannen:
+    
+                Velden:
+                - 'van' (vertrekpunt)
+                - 'naar' (bestemming)
+    
+                Knoppen
+                - 'nu' (standaard instelling)
+                - 'vertrek'
+                - 'aankomst'
+                - 'datum' (datumkiezer)
+                - 'tijd' (dropdown)
+                - 'plan je reis'
+    
+                Gedrag interface:
+    
+                - 'vertrek': de gebruiker kiest vertrekdag met 'datum' en vertrektijd met 'tijd'
+                - 'aankomst': de gebruiker kiest de aankomstdag met 'datum' en aankomsttijd met 'tijd'
+                
+            Op basis van de uiting van de gebruiker zijn de volgende antwoorden geselecteerd:
+            ['Ik ben klaar', 'Ik kan starten', 'Ik snap het niet.', 'Ik kan beginnen', 'Waar moet ik klikken?']
+            Formuleer een reactie op de uiting van de gebruiker, met gebruik van de geselecteerde antwoorden. Geef geen nieuwe instructie en genereer geen dialoog. 
+            Als de uitspraak van de gebruiker niet past in de context, geef dan aan dat je de de vraag niet kunt beantwoorden en herhaal de laatste instructie of vraag de gebruiruiker om 'vorige' of 'volgende' te zeggen.'";"**Graag gedaan! Als je verder wilt gaan, klik dan op de knop 'plan je reis' om je reis te bekijken en te plannen.**
+
+---
+
+In dit voorbeeld reageert de AI op de uitspraak van de gebruiker ""Joy, bedankt. Ik ben eruit gekomen"" door te bevestigen dat de gebruiker de juiste actie heeft ondernomen (""Graag gedaan!"") en vervolgens een nieuwe instructie te geven die past bij de volgende stap in het proces van het plannen van een reis via 9292.nl, namelijk het bekijken en plannen van de reis. Dit wordt weergegeven met de zin ""Als je verder wilt gaan, klik dan op de knop 'plan je reis' om je reis te bekijken en te plannen.""
+
+De AI maakt gebruik van de instructies die zijn gegeven in de interface en de informatie die de gebruiker heeft gegeven"; **Graag gedaan! Als je verder wilt gaan, klik dan op de knop 'plan je reis' om je reis te bekijken en te plannen.**;1;

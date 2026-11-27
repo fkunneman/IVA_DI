@@ -16,7 +16,8 @@ def whisper_webui(request: HttpRequest) -> HttpResponse:
             with tempfile.NamedTemporaryFile(delete_on_close=False) as fp:
                 fp.write(request.FILES['audio_file'].read())
                 fp.close()
-                transcription = transcribe(form.cleaned_data['model_name'], fp.name)
+                # Transcribe with "follow_override_setting=False": in the web ui we always want to use the model that the user has selected
+                transcription = transcribe(form.cleaned_data['model_name'], fp.name, follow_override_setting=False)
     else:
         form = WhisperForm()
     return render(request, "whisper/index.html", {
@@ -31,6 +32,7 @@ def homepage(request: HttpRequest) -> HttpResponse:
 
 @csrf_exempt
 def whisper(request: HttpRequest, model_name: str) -> HttpResponse:
+
     f = request.FILES['file']
 
     from whisper.whisper import transcribe
@@ -38,5 +40,6 @@ def whisper(request: HttpRequest, model_name: str) -> HttpResponse:
         fp.write(f.read())
         fp.close()
         transcription = transcribe(model_name, fp.name)
-        return HttpResponse(transcription)
+        response = HttpResponse(transcription)
+        return response
 

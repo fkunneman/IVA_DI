@@ -12,16 +12,22 @@ LangChain
 
     <div class="bg-body-tertiary p-3 rounded-2 mt-3">
     <h3>Nieuwe sessie</h3>
+        {% if out_of_memory %}
+            <div class="alert alert-danger" role="alert">
+                Er is te veel geheugen in gebruik. Probeer een sessie te verwijderen.
+            </div>
+        {% endif %}
     <form method="post" action="{% url "new_session" %}">
         {{ new_session_form|crispy }}
         <input type="submit" class="btn btn-primary" value="Nieuwe sessie starten">
+        <a class="ms-2" href="{% url 'manage_sessions' %}">Sessies en geheugengebruik beheren</a>
         {% csrf_token %}
     </form>
     </div>
 
     <div class="bg-body-tertiary p-3 rounded-2 mt-3">
     {% if agent %}
-    <p class="mb-0"><strong>Sessienummer: {{ agent_id }}</strong><br>Model: {{ agent.model_name }}</p>
+    <p class="mb-0"><strong>Sessienummer: {{ agent_id }}</strong><br>Model: {{ agent.model_name }}<br><a href="{{ log_url }}" target="_blank">Log downloaden</a></p>
     {% else %}
         {% if has_expired %}
             <p class="text-danger mb-0">Bestaande sessie is verlopen. Start een nieuwe sessie.</p>
